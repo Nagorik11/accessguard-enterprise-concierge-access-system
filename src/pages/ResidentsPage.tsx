@@ -106,6 +106,13 @@ export function ResidentsPage() {
       toast.error("Error al eliminar");
     }
   };
+  const filteredResidents = residents.filter(r => {
+    const matchesSearch = r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.apartmentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (r.vehiclePlate && r.vehiclePlate.toLowerCase().includes(searchTerm.toLowerCase()));
+    if (floorFilter === 'all') return matchesSearch;
+    return matchesSearch && r.apartmentId.startsWith(floorFilter);
+  });
   const floors = useMemo(() => {
     const floorSet = new Set<string>();
     residents.forEach(r => {
@@ -114,20 +121,13 @@ export function ResidentsPage() {
     });
     return Array.from(floorSet).sort((a, b) => parseInt(a) - parseInt(b));
   }, [residents]);
-  const filteredResidents = residents.filter(r => {
-    const matchesSearch = r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.apartmentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (r.vehiclePlate && r.vehiclePlate.toLowerCase().includes(searchTerm.toLowerCase()));
-    if (floorFilter === 'all') return matchesSearch;
-    return matchesSearch && r.apartmentId.startsWith(floorFilter);
-  });
   return (
     <AppLayout container>
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Directorio</h1>
-            <p className="text-slate-500 font-medium">Gestión de ocupantes y vehículos.</p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Directorio de Ocupantes</h1>
+            <p className="text-slate-500 font-medium">Gestión de residentes y vehículos registrados.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative w-full md:w-64">
@@ -142,10 +142,10 @@ export function ResidentsPage() {
             <Select value={floorFilter} onValueChange={setFloorFilter}>
               <SelectTrigger className="w-[140px] h-11 bg-white">
                 <Filter className="h-4 w-4 mr-2 text-slate-400" />
-                <SelectValue placeholder="Piso" />
+                <SelectValue placeholder="Filtro Piso" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los pisos</SelectItem>
+                <SelectItem value="all">Cualquier Piso</SelectItem>
                 {floors.map(f => (
                   <SelectItem key={f} value={f}>Piso {f}</SelectItem>
                 ))}
@@ -157,13 +157,13 @@ export function ResidentsPage() {
             }}>
               <DialogTrigger asChild>
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 px-6 shadow-lg shadow-blue-100">
-                  <Plus className="h-5 w-5 mr-2" /> Nuevo
+                  <Plus className="h-5 w-5 mr-2" /> Agregar Residente
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[550px]">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl font-black">{editingId ? 'Editar Residente' : 'Nuevo Residente'}</DialogTitle>
-                  <DialogDescription>Complete la ficha del ocupante principal.</DialogDescription>
+                  <DialogTitle className="text-2xl font-black">{editingId ? 'Actualizar Datos' : 'Registrar Residente'}</DialogTitle>
+                  <DialogDescription>Ingrese la información del ocupante principal de la unidad.</DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -177,28 +177,28 @@ export function ResidentsPage() {
                       )} />
                       <FormField control={form.control} name="apartmentId" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="font-bold">Departamento</FormLabel>
+                          <FormLabel className="font-bold">Unidad/Departamento</FormLabel>
                           <FormControl><Input placeholder="101-A" className="h-12" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="phone" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="font-bold">Teléfono</FormLabel>
+                          <FormLabel className="font-bold">Teléfono de Contacto</FormLabel>
                           <FormControl><Input placeholder="+569..." className="h-12" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="rut" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="font-bold">RUT (Opcional)</FormLabel>
+                          <FormLabel className="font-bold">RUT (ID Personal)</FormLabel>
                           <FormControl><Input placeholder="12.345.678-9" className="h-12" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="vehiclePlate" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="font-bold">Patente</FormLabel>
+                          <FormLabel className="font-bold">Patente Vehículo</FormLabel>
                           <FormControl><Input placeholder="ABCD12" className="h-12 uppercase" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -206,8 +206,8 @@ export function ResidentsPage() {
                     </div>
                     <div className="bg-slate-50 p-4 rounded-xl border flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-sm font-bold">Alertas WhatsApp</FormLabel>
-                        <p className="text-xs text-slate-500">Notificar visitas/encomiendas.</p>
+                        <FormLabel className="text-sm font-bold">Notificaciones Digitales</FormLabel>
+                        <p className="text-xs text-slate-500">Enviar avisos de visitas y encomiendas.</p>
                       </div>
                       <FormField control={form.control} name="whatsappOptIn" render={({ field }) => (
                         <FormItem><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>
@@ -216,7 +216,7 @@ export function ResidentsPage() {
                     <DialogFooter className="pt-4 gap-2">
                       <Button variant="ghost" type="button" onClick={() => setIsDialogOpen(false)} className="flex-1 h-12 font-bold">Cancelar</Button>
                       <Button type="submit" className="bg-blue-600 hover:bg-blue-700 flex-1 h-12 font-black text-white" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : editingId ? 'Guardar' : 'Registrar'}
+                        {form.formState.isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : editingId ? 'Guardar Cambios' : 'Confirmar Registro'}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -230,19 +230,19 @@ export function ResidentsPage() {
             {loading ? (
               <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-3">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <p className="text-sm font-bold">Sincronizando base de datos...</p>
+                <p className="text-sm font-bold">Accediendo a la base de datos central...</p>
               </div>
             ) : filteredResidents.length === 0 ? (
-              <div className="py-20 text-center text-slate-400 font-medium italic">No se encontraron registros.</div>
+              <div className="py-20 text-center text-slate-400 font-medium italic">No se encontraron residentes registrados.</div>
             ) : (
               <Table>
                 <TableHeader className="bg-slate-50/50">
                   <TableRow className="hover:bg-transparent border-slate-100 uppercase text-[10px] font-black">
-                    <TableHead className="pl-6 h-12">Residente</TableHead>
-                    <TableHead>Depto</TableHead>
+                    <TableHead className="pl-6 h-12">Nombre y RUT</TableHead>
+                    <TableHead>Unidad</TableHead>
                     <TableHead>Contacto</TableHead>
                     <TableHead>Vehículo</TableHead>
-                    <TableHead>WhatsApp</TableHead>
+                    <TableHead>Alertas</TableHead>
                     <TableHead className="text-right pr-6">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -255,10 +255,10 @@ export function ResidentsPage() {
                       </TableCell>
                       <TableCell><Badge variant="outline" className="bg-blue-50 text-blue-700 font-black border-blue-100">{resident.apartmentId}</Badge></TableCell>
                       <TableCell className="text-slate-600 text-xs font-bold"><div className="flex items-center gap-1.5"><Phone className="h-3 w-3 text-slate-400" /> {resident.phone}</div></TableCell>
-                      <TableCell>{resident.vehiclePlate ? <div className="flex items-center gap-1.5 text-xs font-black text-slate-800"><Car className="h-3 w-3 text-indigo-500" /> {resident.vehiclePlate}</div> : <span className="text-slate-300 text-[10px]">N/A</span>}</TableCell>
+                      <TableCell>{resident.vehiclePlate ? <div className="flex items-center gap-1.5 text-xs font-black text-slate-800"><Car className="h-3 w-3 text-indigo-500" /> {resident.vehiclePlate}</div> : <span className="text-slate-300 text-[10px]">Sin Registro</span>}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={cn("text-[10px] font-bold px-3 py-0.5 rounded-full", resident.whatsappOptIn ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-400")}>
-                          <MessageSquare className="h-3 w-3 mr-1" /> {resident.whatsappOptIn ? "ACTIVO" : "OFF"}
+                          <MessageSquare className="h-3 w-3 mr-1" /> {resident.whatsappOptIn ? "ACTIVO" : "DESACT."}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right pr-6 space-x-1">
@@ -275,12 +275,12 @@ export function ResidentsPage() {
         <AlertDialog open={!!deleteConfirmId} onOpenChange={(o) => !o && setDeleteConfirmId(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle className="font-black text-xl">¿Eliminar Residente?</AlertDialogTitle>
-              <AlertDialogDescription>Esta acción es permanente y eliminará toda la información asociada a este perfil en el directorio.</AlertDialogDescription>
+              <AlertDialogTitle className="font-black text-xl">¿Confirmar Eliminación?</AlertDialogTitle>
+              <AlertDialogDescription>Esta acción es irreversible y removerá permanentemente al residente del directorio activo.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel className="font-bold">Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 font-black">Eliminar Permanente</AlertDialogAction>
+              <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 font-black">Eliminar Registro</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

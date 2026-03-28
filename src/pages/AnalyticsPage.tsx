@@ -54,7 +54,7 @@ export function AnalyticsPage() {
   const topAptsData = Object.entries(aptCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
-    .map(([name, value]) => ({ name, value }));
+    .map(([name, value]) => ({ name: `Unidad ${name}`, value }));
   const renderEmpty = (label: string) => (
     <div className="flex flex-col items-center justify-center h-[280px] text-slate-300 gap-2">
       <ShieldAlert className="h-10 w-10 opacity-20" />
@@ -66,20 +66,20 @@ export function AnalyticsPage() {
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex justify-between items-end">
           <div className="space-y-1">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Reportes de Gestión</h1>
-            <p className="text-slate-500 font-medium">Analítica avanzada de seguridad y flujos.</p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Reportes de Operación</h1>
+            <p className="text-slate-500 font-medium">Sistema de inteligencia para gestión de seguridad.</p>
           </div>
           <Badge variant="outline" className="h-9 px-4 gap-2 bg-white border-slate-200 font-bold text-slate-600 shadow-sm">
             <Calendar className="h-4 w-4 text-blue-600" />
-            Periodo: Últimos 6 meses
+            Vigencia: Últimos 6 meses
           </Badge>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: "Visitas Totales", val: visits.length, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-            { label: "Vehículos Parking", val: parking.filter(p => p.status === 'parked').length, icon: Clock, color: "text-orange-600", bg: "bg-orange-50" },
-            { label: "Custodia Activa", val: custody.filter(c => c.status === 'in_custody').length, icon: Package, color: "text-indigo-600", bg: "bg-indigo-50" },
-            { label: "Cumplimiento Legal", val: "100%", icon: TrendingUp, color: "text-green-600", bg: "bg-green-50" }
+            { label: "Visitas Semestre", val: visits.length, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "Ocupación Parking", val: parking.filter(p => p.status === 'parked').length, icon: Clock, color: "text-orange-600", bg: "bg-orange-50" },
+            { label: "Items en Guardia", val: custody.filter(c => c.status === 'in_custody').length, icon: Package, color: "text-indigo-600", bg: "bg-indigo-50" },
+            { label: "Tasa Cumplimiento", val: "100%", icon: TrendingUp, color: "text-green-600", bg: "bg-green-50" }
           ].map((stat, i) => (
             <Card key={i} className="border-none shadow-sm bg-white overflow-hidden">
               <CardContent className="p-6 flex items-center justify-between">
@@ -97,13 +97,13 @@ export function AnalyticsPage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="p-6 border-none shadow-sm bg-white">
             <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-lg font-black">Tráfico Mensual</CardTitle>
-              <CardDescription className="text-xs font-medium">Volumen de ingresos autorizados por mes.</CardDescription>
+              <CardTitle className="text-lg font-black">Tráfico Mensual Consolidado</CardTitle>
+              <CardDescription className="text-xs font-medium">Ingresos autorizados por periodo mensual.</CardDescription>
             </CardHeader>
             <div className="h-[300px] w-full mt-6">
               {loading ? (
                 <Skeleton className="h-full w-full rounded-lg" />
-              ) : monthlyData.length === 0 ? renderEmpty("Sin datos mensuales") : (
+              ) : monthlyData.length === 0 ? renderEmpty("Sin datos estadísticos") : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={monthlyData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -118,18 +118,18 @@ export function AnalyticsPage() {
           </Card>
           <Card className="p-6 border-none shadow-sm bg-white">
             <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-lg font-black">Top Unidades</CardTitle>
-              <CardDescription className="text-xs font-medium">Departamentos con mayor recurrencia de visitas.</CardDescription>
+              <CardTitle className="text-lg font-black">Distribución por Unidad</CardTitle>
+              <CardDescription className="text-xs font-medium">Unidades con mayor flujo de accesos registrados.</CardDescription>
             </CardHeader>
             <div className="h-[300px] w-full mt-6">
               {loading ? (
                 <Skeleton className="h-full w-full rounded-lg" />
-              ) : topAptsData.length === 0 ? renderEmpty("Sin actividad registrada") : (
+              ) : topAptsData.length === 0 ? renderEmpty("Sin actividad en bitácora") : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={topAptsData} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                     <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} width={80} />
+                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} width={90} />
                     <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
                     <Bar dataKey="value" fill="#8b5cf6" radius={[0, 6, 6, 0]} barSize={30} />
                   </BarChart>
@@ -140,12 +140,12 @@ export function AnalyticsPage() {
         </div>
         <Card className="p-8 border-none shadow-sm bg-white">
           <CardHeader className="px-0 pt-0 mb-6">
-            <CardTitle className="text-xl font-black">Tendencia Diaria (Semana Actual)</CardTitle>
+            <CardTitle className="text-xl font-black">Flujo Semanal de Accesos (Turno Actual)</CardTitle>
           </CardHeader>
           <div className="h-[350px] w-full">
             {loading ? (
               <Skeleton className="h-full w-full rounded-lg" />
-            ) : timelineData.every(d => d.visitas === 0) ? renderEmpty("Esperando registros semanales") : (
+            ) : timelineData.every(d => d.visitas === 0) ? renderEmpty("Esperando actividad semanal") : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={timelineData}>
                   <defs>

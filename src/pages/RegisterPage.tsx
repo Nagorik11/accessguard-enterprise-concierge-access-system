@@ -74,7 +74,7 @@ export function RegisterPage() {
       setSubmittedData(result);
       setIsSuccess(true);
       confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-      toast.success("Visita autorizada");
+      toast.success("Ingreso Autorizado por Conserjería Digital");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Fallo en el registro");
     }
@@ -92,7 +92,7 @@ export function RegisterPage() {
               <div className="bg-green-600 p-8 text-center text-white">
                 <CheckCircle2 className="h-16 w-16 mx-auto mb-4" />
                 <h1 className="text-3xl font-black uppercase tracking-tight">¡Autorizado!</h1>
-                <p className="text-green-100 font-bold mt-2">Acceso registrado correctamente</p>
+                <p className="text-green-100 font-bold mt-2">Acceso verificado por sistema digital</p>
               </div>
               <CardContent className="p-8 space-y-6">
                 <div className="grid grid-cols-2 gap-6">
@@ -103,22 +103,22 @@ export function RegisterPage() {
                   </div>
                   <div className="space-y-1 text-right">
                     <p className="text-[10px] uppercase font-black text-slate-400">Destino</p>
-                    <p className="text-2xl font-black text-blue-600">Depto {submittedData.apartmentId}</p>
+                    <p className="text-2xl font-black text-blue-600">Unidad {submittedData.apartmentId}</p>
                   </div>
                 </div>
                 <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
                   <div className="flex items-center gap-2 text-blue-700 mb-2">
                     <Send className="h-4 w-4" />
-                    <span className="text-[11px] font-black uppercase">Notificación Enviada</span>
+                    <span className="text-[11px] font-black uppercase">Notificación enviada al residente</span>
                   </div>
                   <p className="text-xs font-bold text-blue-800 leading-relaxed italic">
-                    "El visitante {submittedData.visitorName} se dirige a su departamento."
+                    "Conserjería Digital: El visitante {submittedData.visitorName} acaba de ser autorizado."
                   </p>
                 </div>
               </CardContent>
               <CardFooter className="bg-slate-50 p-6 flex gap-3">
                 <Button variant="outline" className="flex-1 h-12 font-bold text-slate-600" onClick={() => window.print()}>
-                  <Printer className="h-5 w-5 mr-2" /> Imprimir
+                  <Printer className="h-5 w-5 mr-2" /> Comprobante
                 </Button>
                 <Button className="flex-1 h-12 font-black bg-slate-900" onClick={() => { setIsSuccess(false); form.reset(); }}>
                   Nuevo Registro
@@ -137,10 +137,10 @@ export function RegisterPage() {
           <CardHeader className="space-y-2 border-b bg-slate-50 p-8">
             <CardTitle className="text-3xl font-black text-slate-900 flex items-center gap-3">
               <UserPlus className="h-8 w-8 text-blue-600" />
-              Nueva Visita
+              Gestión de Acceso
             </CardTitle>
             <CardDescription className="text-base font-medium">
-              Ingrese los datos para autorizar el ingreso al edificio.
+              Complete la ficha de ingreso para autorizar al visitante en el sistema digital.
             </CardDescription>
           </CardHeader>
           <Form {...form}>
@@ -165,7 +165,7 @@ export function RegisterPage() {
                     name="visitorRut"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold text-slate-700">RUT (Cédula de Identidad)</FormLabel>
+                        <FormLabel className="font-bold text-slate-700">RUT / Identificación</FormLabel>
                         <FormControl>
                           <Input placeholder="12.345.678-9" className="h-12 text-lg font-mono font-bold" {...field} onChange={handleRutChange} />
                         </FormControl>
@@ -180,17 +180,17 @@ export function RegisterPage() {
                     name="apartmentId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold text-slate-700">Departamento de Destino</FormLabel>
+                        <FormLabel className="font-bold text-slate-700">Unidad de Destino</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger className="h-12 text-lg font-black text-blue-700">
-                              <SelectValue placeholder={isLoadingResidents ? "Cargando..." : "Seleccionar depto"} />
+                              <SelectValue placeholder={isLoadingResidents ? "Cargando directorio..." : "Seleccionar depto"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {residents.map((r) => (
                               <SelectItem key={r.id} value={r.apartmentId}>
-                                <span className="font-black">Depto {r.apartmentId}</span> - {r.fullName}
+                                <span className="font-black">Unidad {r.apartmentId}</span> - {r.fullName}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -204,11 +204,11 @@ export function RegisterPage() {
                     name="purpose"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold text-slate-700">Motivo</FormLabel>
+                        <FormLabel className="font-bold text-slate-700">Motivo de la Visita</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger className="h-12 font-bold">
-                              <SelectValue placeholder="Motivo de ingreso" />
+                              <SelectValue placeholder="Seleccione motivo" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -228,9 +228,9 @@ export function RegisterPage() {
                     name="otherPurpose"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-bold">Especifique Motivo</FormLabel>
+                        <FormLabel className="font-bold">Especifique el Motivo</FormLabel>
                         <FormControl>
-                          <Input placeholder="Describa el motivo..." className="h-12" {...field} />
+                          <Input placeholder="Descripción breve..." className="h-12" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -241,9 +241,9 @@ export function RegisterPage() {
                   <div className="flex items-start gap-4">
                     <ShieldAlert className="h-8 w-8 text-blue-600 flex-shrink-0" />
                     <div className="space-y-1">
-                      <p className="text-xs font-black text-slate-800 uppercase tracking-widest">Privacidad y Consentimiento</p>
+                      <p className="text-xs font-black text-slate-800 uppercase tracking-widest">Protección de Datos Personales</p>
                       <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                        Sus datos serán tratados según la Ley 19.628. Al registrarse, acepta que su visita sea informada al residente.
+                        Los datos registrados se procesan bajo la Ley 19.628 de protección de vida privada y serán eliminados automáticamente según la política del edificio.
                       </p>
                     </div>
                   </div>
@@ -256,7 +256,7 @@ export function RegisterPage() {
                           <Checkbox checked={field.value} onCheckedChange={field.onChange} className="h-6 w-6" />
                         </FormControl>
                         <FormLabel className="text-sm font-black text-slate-700 cursor-pointer select-none">
-                          El visitante acepta los términos y condiciones.
+                          He verificado la identidad y el visitante acepta el registro de sus datos.
                         </FormLabel>
                       </FormItem>
                     )}
@@ -264,9 +264,9 @@ export function RegisterPage() {
                 </div>
               </CardContent>
               <CardFooter className="bg-slate-50 p-8 flex justify-end gap-4 rounded-b-2xl border-t">
-                <Button variant="ghost" type="button" className="h-14 px-8 font-bold text-slate-500" onClick={() => form.reset()}>Limpiar</Button>
+                <Button variant="ghost" type="button" className="h-14 px-8 font-bold text-slate-500" onClick={() => form.reset()}>Limpiar Formulario</Button>
                 <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white min-w-[200px] h-14 text-xl font-black shadow-lg shadow-blue-200" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? <Loader2 className="h-6 w-6 animate-spin" /> : "Autorizar Ingreso"}
+                  {form.formState.isSubmitting ? <Loader2 className="h-6 w-6 animate-spin" /> : "Validar e Ingresar"}
                 </Button>
               </CardFooter>
             </form>

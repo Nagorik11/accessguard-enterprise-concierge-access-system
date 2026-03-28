@@ -28,7 +28,10 @@ export function AppLayout({ children, container = false, className, contentClass
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20">
               <ShieldCheck className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-black tracking-tighter text-white">AccessGuard</span>
+            <div className="flex flex-col">
+              <span className="text-lg font-black tracking-tight text-white leading-none">Conserjería</span>
+              <span className="text-xs font-bold text-blue-400 uppercase tracking-widest mt-0.5">Digital</span>
+            </div>
           </div>
         </SidebarHeader>
         <SidebarContent className="p-3">
@@ -43,9 +46,9 @@ export function AppLayout({ children, container = false, className, contentClass
                 { path: "/residents", label: "Directorio", icon: Users },
               ].map((item) => (
                 <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={location.pathname === item.path} 
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === item.path}
                     className="h-12 hover:bg-slate-800 transition-all duration-200 group"
                   >
                     <Link to={item.path} className="flex items-center gap-4 px-4">
@@ -57,7 +60,7 @@ export function AppLayout({ children, container = false, className, contentClass
               ))}
               {isAdmin && (
                 <div className="pt-8 pb-2 px-4">
-                  <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-3">Admin Suite</p>
+                  <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-3">Administración</p>
                   <div className="space-y-1.5">
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild isActive={location.pathname === "/analytics"} className="h-11 hover:bg-slate-800">
@@ -89,7 +92,7 @@ export function AppLayout({ children, container = false, className, contentClass
             <div className="overflow-hidden">
               <p className="text-sm font-black text-white truncate leading-none">{user?.fullName}</p>
               <p className="text-[9px] text-blue-400 font-bold uppercase tracking-widest mt-1.5">
-                {user?.role === 'admin' ? 'Super Admin' : 'Operador'}
+                {user?.role === 'admin' ? 'Administrador' : 'Operador'}
               </p>
             </div>
           </div>
@@ -102,7 +105,7 @@ export function AppLayout({ children, container = false, className, contentClass
             className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-300"
           >
             <LogOut className="h-5 w-5" />
-            Desconectar
+            Cerrar Sesión
           </button>
         </div>
       </Sidebar>
@@ -113,11 +116,11 @@ export function AppLayout({ children, container = false, className, contentClass
           <h2 className="text-sm font-black uppercase tracking-[0.15em] text-slate-700">
             {location.pathname === "/" && "Tablero de Control"}
             {location.pathname === "/register" && "Gestión de Accesos"}
-            {location.pathname === "/residents" && "Directorio del Edificio"}
+            {location.pathname === "/residents" && "Directorio de Residentes"}
             {location.pathname === "/compliance" && "Privacidad y Cumplimiento"}
             {location.pathname === "/custody" && "Gestión de Paquetería"}
             {location.pathname === "/analytics" && "Inteligencia de Datos"}
-            {location.pathname === "/history" && "Auditoría de Bitácora"}
+            {location.pathname === "/history" && "Historial de Bitácora"}
             {location.pathname === "/parking" && "Control de Estacionamiento"}
           </h2>
         </header>

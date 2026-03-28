@@ -21,8 +21,8 @@ export function LoginPage() {
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "admin",
-      password: "admin123",
+      username: "staff",
+      password: "staff123",
     },
   });
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
@@ -45,13 +45,13 @@ export function LoginPage() {
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-200 mb-4">
             <ShieldCheck className="h-7 w-7 text-white" />
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">AccessGuard</h1>
-          <p className="text-slate-500">Gestión de Acceso Residencial</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Conserjería Digital</h1>
+          <p className="text-slate-500 font-medium">Control de Acceso y Seguridad</p>
         </div>
         <Card className="border-none shadow-xl">
           <CardHeader>
-            <CardTitle className="text-xl">Iniciar Sesión</CardTitle>
-            <CardDescription>Ingrese sus credenciales para acceder al sistema.</CardDescription>
+            <CardTitle className="text-xl">Panel Operativo</CardTitle>
+            <CardDescription>Ingrese sus credenciales para gestionar el recinto.</CardDescription>
           </CardHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -61,9 +61,9 @@ export function LoginPage() {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Usuario</FormLabel>
+                      <FormLabel>Identificador de Usuario</FormLabel>
                       <FormControl>
-                        <Input placeholder="admin" {...field} />
+                        <Input placeholder="usuario" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -74,7 +74,7 @@ export function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contraseña</FormLabel>
+                      <FormLabel>Clave de Seguridad</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="••••••••" {...field} />
                       </FormControl>
@@ -84,21 +84,21 @@ export function LoginPage() {
                 />
               </CardContent>
               <CardFooter>
-                <Button 
-                  type="submit" 
-                  className="w-full bg-blue-600 hover:bg-blue-700 h-11" 
+                <Button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700 h-11 font-bold"
                   disabled={form.formState.isSubmitting}
                 >
                   {form.formState.isSubmitting ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : "Entrar al Sistema"}
+                  ) : "Acceder al Sistema"}
                 </Button>
               </CardFooter>
             </form>
           </Form>
         </Card>
         <p className="text-center text-xs text-slate-400">
-          Uso exclusivo para personal autorizado de conserjería.
+          Software de gestión inmobiliaria exclusivo para personal autorizado.
         </p>
       </div>
     </div>

@@ -28,7 +28,7 @@ export function HistoryPage() {
       const response = await api<{ items: VisitLog[] }>('/api/visits');
       setVisits(response.items || []);
     } catch (err) {
-      toast.error("Error al cargar historial");
+      toast.error("Error al cargar historial de bitácora");
     } finally {
       setLoading(false);
     }
@@ -37,13 +37,13 @@ export function HistoryPage() {
     loadHistory();
   }, []);
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Eliminar este registro permanentemente?")) return;
+    if (!confirm("¿Eliminar este registro de bitácora permanentemente?")) return;
     try {
       await api(`/api/visits/${id}`, { method: 'DELETE' });
       toast.success("Registro eliminado");
       loadHistory();
     } catch (err) {
-      toast.error("Error al eliminar");
+      toast.error("Error al eliminar registro");
     }
   };
   const filteredVisits = visits.filter(v => {
@@ -54,20 +54,20 @@ export function HistoryPage() {
     return matchesSearch && v.status === statusFilter;
   });
   const handleExport = () => {
-    toast.success("Preparando archivo CSV...");
-    setTimeout(() => toast.info("Bitácora exportada correctamente"), 1200);
+    toast.success("Generando reporte CSV...");
+    setTimeout(() => toast.info("Bitácora exportada con éxito"), 1200);
   };
   return (
     <AppLayout container className="bg-slate-50">
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Bitácora Histórica</h1>
-            <p className="text-slate-500 font-medium">Auditoría completa de flujos de acceso.</p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Bitácora de Turnos</h1>
+            <p className="text-slate-500 font-medium">Auditoría completa de ingresos y salidas del recinto.</p>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" className="h-11 font-bold bg-white" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" /> Exportar
+              <Download className="h-4 w-4 mr-2" /> Descargar Reporte
             </Button>
           </div>
         </div>
@@ -77,7 +77,7 @@ export function HistoryPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
-                  placeholder="Buscar por nombre, RUT o departamento..."
+                  placeholder="Filtrar por nombre, RUT o unidad..."
                   className="pl-10 h-11 bg-white border-slate-200"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -87,11 +87,11 @@ export function HistoryPage() {
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-[180px] h-11 bg-white">
                     <Clock className="h-4 w-4 mr-2 text-slate-400" />
-                    <SelectValue placeholder="Estado" />
+                    <SelectValue placeholder="Estado Acceso" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos los estados</SelectItem>
-                    <SelectItem value="active">En Edificio</SelectItem>
+                    <SelectItem value="all">Todos los registros</SelectItem>
+                    <SelectItem value="active">En Recinto</SelectItem>
                     <SelectItem value="completed">Finalizados</SelectItem>
                     <SelectItem value="denied">Denegados</SelectItem>
                   </SelectContent>
@@ -104,18 +104,18 @@ export function HistoryPage() {
             {loading ? (
               <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-4">
                 <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-                <p className="font-bold text-sm">Consultando registros históricos...</p>
+                <p className="font-bold text-sm">Consultando registros históricos en Conserjería Digital...</p>
               </div>
             ) : filteredVisits.length === 0 ? (
-              <div className="text-center py-24 text-slate-400 font-bold uppercase tracking-widest text-xs">No se registran accesos</div>
+              <div className="text-center py-24 text-slate-400 font-bold uppercase tracking-widest text-xs">No se encontraron movimientos registrados</div>
             ) : (
               <Table>
                 <TableHeader className="bg-slate-50/30">
                   <TableRow className="hover:bg-transparent border-slate-100 uppercase text-[10px] font-black">
-                    <TableHead className="w-[180px] pl-6 h-12">Fecha / Hora</TableHead>
-                    <TableHead>Visitante</TableHead>
-                    <TableHead>Destino</TableHead>
-                    <TableHead>Legal / Consent.</TableHead>
+                    <TableHead className="w-[180px] pl-6 h-12">Fecha y Hora</TableHead>
+                    <TableHead>Identificación</TableHead>
+                    <TableHead>Unidad Destino</TableHead>
+                    <TableHead>Protocolo Legal</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right pr-6">Acción</TableHead>
                   </TableRow>
@@ -142,7 +142,7 @@ export function HistoryPage() {
                         <TableCell>
                           {v.legalConsent ? (
                             <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-none gap-1 py-0 px-2 h-6 font-black text-[9px] group-hover:bg-blue-100 transition-colors">
-                              <ShieldCheck className="h-3 w-3" /> ACEPTADO
+                              <ShieldCheck className="h-3 w-3" /> VERIFICADO
                             </Badge>
                           ) : (
                             <span className="text-slate-300 text-[10px] font-bold">—</span>
@@ -157,7 +157,7 @@ export function HistoryPage() {
                               v.status === 'completed' && "text-slate-500 bg-slate-50"
                             )}
                           >
-                            {v.status === 'active' ? 'En Edificio' : v.status === 'completed' ? 'Cerrado' : v.status}
+                            {v.status === 'active' ? 'En Recinto' : v.status === 'completed' ? 'Cerrado' : v.status}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right pr-6 space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">

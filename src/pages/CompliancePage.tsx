@@ -24,7 +24,7 @@ export function CompliancePage() {
         const data = await api<ComplianceSettings>('/api/settings');
         setSettings(data);
       } catch (err) {
-        toast.error("Error al cargar configuración legal");
+        toast.error("Error al cargar configuración de cumplimiento");
       } finally {
         setLoading(false);
       }
@@ -39,21 +39,21 @@ export function CompliancePage() {
         method: 'POST',
         body: JSON.stringify(settings)
       });
-      toast.success("Políticas actualizadas correctamente");
+      toast.success("Políticas de privacidad actualizadas");
     } catch (err) {
-      toast.error("Fallo al guardar cambios");
+      toast.error("Fallo al guardar configuración");
     } finally {
       setSaving(false);
     }
   };
   const handleManualCleanup = async () => {
-    if (!confirm("ADVERTENCIA: ¿Ejecutar limpieza de datos ahora? Esta acción eliminará permanentemente los registros fuera de plazo.")) return;
+    if (!confirm("ADVERTENCIA: ¿Ejecutar purga de datos ahora? Esta acción eliminará permanentemente los registros que exceden el plazo de retención.")) return;
     setCleaning(true);
     try {
       const res = await api<any>('/api/settings/cleanup', { method: 'POST' });
-      toast.success(`Limpieza completada: ${res.visitsDeleted} visitas, ${res.parkingDeleted} parking y ${res.itemsDeleted} paquetes eliminados.`);
+      toast.success(`Limpieza completada: ${res.visitsDeleted} visitas, ${res.parkingDeleted} parking y ${res.itemsDeleted} paquetes purgados.`);
     } catch (err) {
-      toast.error("Error durante el proceso de purga");
+      toast.error("Error durante el proceso de purga manual");
     } finally {
       setCleaning(false);
     }
@@ -74,15 +74,15 @@ export function CompliancePage() {
           <div className="bg-amber-50 border-l-4 border-amber-400 p-5 rounded-lg flex items-center gap-4 text-amber-900 shadow-sm">
             <AlertTriangle className="h-6 w-6 text-amber-500 flex-shrink-0" />
             <div className="space-y-1">
-              <p className="font-black text-sm uppercase tracking-tight">Acceso Restringido</p>
-              <p className="text-xs font-medium">Solo administradores del edificio pueden modificar los parámetros de privacidad y retención.</p>
+              <p className="font-black text-sm uppercase tracking-tight">Acceso de Solo Lectura</p>
+              <p className="text-xs font-medium">Solo administradores con credenciales de nivel superior pueden modificar los parámetros de seguridad y privacidad.</p>
             </div>
           </div>
         )}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Privacidad y Datos</h1>
-            <p className="text-slate-500 font-medium">Gestión de cumplimiento normativo Ley 19.628.</p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Políticas de Privacidad</h1>
+            <p className="text-slate-500 font-medium">Gestión de cumplimiento normativo y retención de datos.</p>
           </div>
           <Button
             className="bg-blue-600 hover:bg-blue-700 text-white font-black h-12 px-8 shadow-lg shadow-blue-100"
@@ -90,7 +90,7 @@ export function CompliancePage() {
             disabled={saving || !isAdmin}
           >
             {saving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
-            Guardar Cambios
+            Aplicar Cambios
           </Button>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -98,15 +98,15 @@ export function CompliancePage() {
             <CardHeader className="bg-white border-b p-6">
               <CardTitle className="text-lg font-black flex items-center gap-3">
                 <ShieldCheck className="h-6 w-6 text-blue-600" />
-                Retención de Información
+                Ciclo de Vida de los Datos
               </CardTitle>
-              <CardDescription className="font-medium">Defina el ciclo de vida de los datos personales en el sistema.</CardDescription>
+              <CardDescription className="font-medium">Defina cuánto tiempo se almacenarán los registros personales en el sistema.</CardDescription>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
               <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border-2 border-slate-100">
                 <div className="space-y-1">
-                  <Label className="text-base font-black text-slate-900">Purga Automática</Label>
-                  <p className="text-xs text-slate-500 font-medium">Eliminación cíclica de registros antiguos.</p>
+                  <Label className="text-base font-black text-slate-900">Purga Automática de Registros</Label>
+                  <p className="text-xs text-slate-500 font-medium">Eliminación sistemática de bitácoras antiguas para cumplir con la Ley 19.628.</p>
                 </div>
                 <Switch
                   disabled={!isAdmin}
@@ -116,7 +116,7 @@ export function CompliancePage() {
                 />
               </div>
               <div className="space-y-4">
-                <Label htmlFor="retention" className="text-sm font-black uppercase text-slate-500 tracking-widest">Días de Permanencia</Label>
+                <Label htmlFor="retention" className="text-sm font-black uppercase text-slate-500 tracking-widest">Plazo de Retención</Label>
                 <div className="flex items-center gap-6">
                   <div className="relative max-w-[160px]">
                     <Input
@@ -127,11 +127,11 @@ export function CompliancePage() {
                       value={settings?.retentionDays}
                       onChange={(e) => setSettings(s => s ? { ...s, retentionDays: parseInt(e.target.value) || 0 } : null)}
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">DÍAS</span>
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 uppercase">Días</span>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-bold text-slate-700">Tiempo de almacenamiento</p>
-                    <p className="text-[10px] text-slate-400 font-medium max-w-xs">Transcurrido este plazo, los registros de acceso y parking serán eliminados permanentemente.</p>
+                    <p className="text-sm font-bold text-slate-700">Tiempo de permanencia en bitácora</p>
+                    <p className="text-[10px] text-slate-400 font-medium max-w-xs">Al cumplirse este plazo, los datos de visitas, estacionamiento y recepción de paquetes serán anonimizados o eliminados.</p>
                   </div>
                 </div>
               </div>
@@ -141,20 +141,20 @@ export function CompliancePage() {
             <CardHeader className="border-b bg-green-50/30">
               <CardTitle className="text-lg font-black flex items-center gap-3 text-green-800">
                 <MessageSquare className="h-6 w-6 text-green-600" />
-                WhatsApp
+                Servicio Notificaciones
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase">Estado:</span>
+                <span className="text-xs font-bold text-slate-500 uppercase">Estado API:</span>
                 <Badge className="bg-green-100 text-green-700 font-black border-none uppercase text-[10px] px-3">
-                  ACTIVO / OK
+                  CONECTADO / OK
                 </Badge>
               </div>
               <div className="p-4 bg-slate-900 rounded-xl font-mono text-[10px] text-green-400 border border-slate-800 leading-relaxed shadow-inner">
-                <p>"AVISO: Visitante JUAN PEREZ se dirige a DEPTO 101-A. Consentimiento registrado."</p>
+                <p>"Conserjería Digital: Su visita está autorizada para dirigirse a la Unidad 101-A."</p>
               </div>
-              <Button variant="outline" className="w-full h-11 font-bold border-2 hover:bg-slate-50" disabled={!isAdmin}>Probar API WhatsApp</Button>
+              <Button variant="outline" className="w-full h-11 font-bold border-2 hover:bg-slate-50" disabled={!isAdmin}>Testear WhatsApp</Button>
             </CardContent>
           </Card>
           <Card className="shadow-md border-2 border-red-100 lg:col-span-12 bg-red-50/20 overflow-hidden">
@@ -164,20 +164,20 @@ export function CompliancePage() {
                   <ShieldAlert className="h-8 w-8 text-red-600" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-black text-red-900">Mantenimiento Crítico</h3>
+                  <h3 className="text-xl font-black text-red-900">Mantenimiento de Infraestructura</h3>
                   <p className="text-sm font-medium text-red-700/80 leading-relaxed max-w-2xl">
-                    Ejecutar la purga manual forzará la eliminación inmediata de toda la bitácora que exceda el periodo de <strong>{settings?.retentionDays} días</strong>. Esta acción no tiene reversa.
+                    La purga manual fuerza la eliminación inmediata de registros fuera del plazo legal de <strong>{settings?.retentionDays} días</strong>. Esta acción libera espacio y asegura el cumplimiento.
                   </p>
                 </div>
               </div>
-              <Button 
-                variant="destructive" 
-                onClick={handleManualCleanup} 
-                disabled={cleaning || !isAdmin} 
+              <Button
+                variant="destructive"
+                onClick={handleManualCleanup}
+                disabled={cleaning || !isAdmin}
                 className="h-14 px-10 font-black text-lg shadow-xl shadow-red-100 flex-shrink-0"
               >
                 {cleaning ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : <Trash2 className="h-6 w-6 mr-2" />}
-                PURGAR DATOS
+                PURGAR BITÁCORA
               </Button>
             </CardContent>
           </Card>
@@ -185,12 +185,12 @@ export function CompliancePage() {
             <CardHeader className="border-b p-6">
               <CardTitle className="text-lg font-black flex items-center gap-3">
                 <Scale className="h-6 w-6 text-slate-600" />
-                Base Legal y Transparencia
+                Información Legal del Edificio
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8">
               <div className="grid gap-4">
-                <Label htmlFor="policy-url" className="text-sm font-black uppercase text-slate-500">URL Política de Privacidad</Label>
+                <Label htmlFor="policy-url" className="text-sm font-black uppercase text-slate-500">URL de Términos y Condiciones</Label>
                 <Input
                   id="policy-url"
                   disabled={!isAdmin}
@@ -200,7 +200,7 @@ export function CompliancePage() {
                   onChange={(e) => setSettings(s => s ? { ...s, privacyPolicyUrl: e.target.value } : null)}
                 />
                 <p className="text-[11px] text-slate-400 font-medium italic mt-1">
-                  Este link se adjunta en cada mensaje de autorización enviado a los visitantes.
+                  Este enlace se utiliza para informar a los visitantes sobre el tratamiento de sus datos personales.
                 </p>
               </div>
             </CardContent>

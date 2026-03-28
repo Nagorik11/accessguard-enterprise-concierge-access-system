@@ -58,10 +58,9 @@ export function HomePage() {
   return (
     <AppLayout container className="bg-slate-50">
       <div className="space-y-6">
-        {/* Sticky Quick Actions Bar */}
         <div className="sticky top-0 z-20 -mx-4 px-4 py-3 bg-white/80 backdrop-blur-md border-b flex flex-wrap items-center justify-between gap-4 shadow-sm">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-900">Acciones Rápidas</h1>
+            <h1 className="text-xl font-bold text-slate-900">Acciones de Turno</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link to="/register">
@@ -93,13 +92,12 @@ export function HomePage() {
             <Button size="sm" variant="destructive" onClick={fetchData}>Reintentar</Button>
           </div>
         )}
-        {/* High Visibility Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Personas en Interior", val: currentlyInside, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-            { label: "Vehículos en Interior", val: parkedNow, icon: Car, color: "text-indigo-600", bg: "bg-indigo-50" },
-            { label: "Visitas Hoy", val: visitsToday, icon: ArrowUpRight, color: "text-green-600", bg: "bg-green-50" },
-            { label: "Paquetes Custodia", val: inCustody, icon: Package, color: "text-orange-600", bg: "bg-orange-50" }
+            { label: "Personas en Recinto", val: currentlyInside, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "Vehículos Visita", val: parkedNow, icon: Car, color: "text-indigo-600", bg: "bg-indigo-50" },
+            { label: "Visitas de Hoy", val: visitsToday, icon: ArrowUpRight, color: "text-green-600", bg: "bg-green-50" },
+            { label: "Paquetes en Guardia", val: inCustody, icon: Package, color: "text-orange-600", bg: "bg-orange-50" }
           ].map((stat, i) => (
             <Card key={i} className="shadow-sm border-none bg-white">
               <CardContent className="p-6 flex items-center justify-between">
@@ -114,12 +112,11 @@ export function HomePage() {
             </Card>
           ))}
         </div>
-        {/* Recent Activity Table with Skeletons */}
         <Card className="shadow-sm border-none bg-white overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-lg font-bold text-slate-900">Monitor de Accesos</CardTitle>
-              <p className="text-xs text-slate-500">Últimos registros de ingreso al recinto</p>
+              <CardTitle className="text-lg font-bold text-slate-900">Monitor de Accesos Activos</CardTitle>
+              <p className="text-xs text-slate-500">Registros vigentes en el edificio</p>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -139,14 +136,14 @@ export function HomePage() {
                 ))}
               </div>
             ) : visits.length === 0 ? (
-              <div className="text-center py-20 text-slate-400 italic font-medium">No se registran visitas hoy.</div>
+              <div className="text-center py-20 text-slate-400 italic font-medium">No hay movimientos registrados hoy.</div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent border-slate-100 uppercase text-[10px]">
                     <TableHead className="pl-6 font-bold">Visitante</TableHead>
-                    <TableHead className="font-bold">Unidad</TableHead>
-                    <TableHead className="font-bold">Ingreso</TableHead>
+                    <TableHead className="font-bold">Departamento</TableHead>
+                    <TableHead className="font-bold">Entrada</TableHead>
                     <TableHead className="font-bold">Estado</TableHead>
                     <TableHead className="text-right pr-6 font-bold">Acción</TableHead>
                   </TableRow>
@@ -158,7 +155,7 @@ export function HomePage() {
                         <div className="font-bold text-slate-900">{log.visitorName}</div>
                         <div className="text-[10px] text-slate-400 font-mono uppercase">{log.visitorRut}</div>
                       </TableCell>
-                      <TableCell className="text-blue-700 font-black">Depto {log.apartmentId}</TableCell>
+                      <TableCell className="text-blue-700 font-black">Unidad {log.apartmentId}</TableCell>
                       <TableCell className="text-slate-500 text-xs font-semibold">
                         {log.entryTime ? format(log.entryTime, 'HH:mm', { locale: es }) : '—'}
                       </TableCell>
@@ -172,7 +169,7 @@ export function HomePage() {
                             log.status === 'denied' && "bg-red-100 text-red-700",
                           )}
                         >
-                          {log.status === 'active' ? 'en edificio' : log.status === 'completed' ? 'salida' : 'denegado'}
+                          {log.status === 'active' ? 'en edificio' : log.status === 'completed' ? 'finalizado' : 'denegado'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right pr-6">
@@ -184,7 +181,7 @@ export function HomePage() {
                             onClick={() => handleCheckOut(log.id)}
                           >
                             <LogOut className="h-4 w-4 mr-2" />
-                            Salida
+                            Registrar Salida
                           </Button>
                         )}
                       </TableCell>
@@ -198,9 +195,9 @@ export function HomePage() {
         <div className="flex items-center justify-between text-[10px] text-slate-400 uppercase tracking-widest pt-4 font-bold">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5"><ShieldCheck className="h-3 w-3 text-green-500" /> Sincronizado</span>
-            <span>Última Actualización: {format(new Date(), 'HH:mm:ss')}</span>
+            <span>Actualizado: {format(new Date(), 'HH:mm:ss')}</span>
           </div>
-          <div>AccessGuard v1.4.0</div>
+          <div>Conserjería Digital v1.5.0</div>
         </div>
       </div>
     </AppLayout>
