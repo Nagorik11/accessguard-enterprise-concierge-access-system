@@ -1,5 +1,5 @@
-import { IndexedEntity } from "./core-utils";
-import type { User, Resident, VisitLog } from "@shared/types";
+import { IndexedEntity, Entity } from "./core-utils";
+import type { User, Resident, VisitLog, ComplianceSettings } from "@shared/types";
 import { MOCK_USERS } from "@shared/mock-data";
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
@@ -23,14 +23,24 @@ export class ResidentEntity extends IndexedEntity<Resident> {
 export class VisitEntity extends IndexedEntity<VisitLog> {
   static readonly entityName = "visit";
   static readonly indexName = "visits";
-  static readonly initialState: VisitLog = { 
-    id: "", 
-    visitorName: "", 
-    visitorRut: "", 
-    apartmentId: "", 
-    entryTime: 0, 
-    purpose: "", 
-    legalConsent: false, 
-    status: 'active' 
+  static readonly initialState: VisitLog = {
+    id: "",
+    visitorName: "",
+    visitorRut: "",
+    apartmentId: "",
+    entryTime: 0,
+    purpose: "",
+    legalConsent: false,
+    status: 'active'
+  };
+}
+export class SettingsEntity extends Entity<ComplianceSettings> {
+  static readonly entityName = "compliance-settings";
+  static readonly initialState: ComplianceSettings = {
+    id: "global-settings",
+    retentionDays: 30,
+    autoDeleteEnabled: true,
+    privacyPolicyUrl: "https://accessguard.io/privacy",
+    whatsappTemplateStatus: 'approved'
   };
 }

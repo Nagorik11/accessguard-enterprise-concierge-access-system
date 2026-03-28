@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { ResidentEntity, VisitEntity } from "./entities";
-import { ok, bad, isStr } from './core-utils';
+import { ResidentEntity, VisitEntity, SettingsEntity } from "./entities";
+import { ok, bad, notFound } from './core-utils';
 import { isValidRut } from "../shared/validators";
-import type { VisitRegistration, VisitLog } from "@shared/types";
+import type { VisitRegistration, VisitLog, ComplianceSettings } from "@shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // RESIDENTS
   app.get('/api/residents', async (c) => {
@@ -17,12 +17,13 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/visits', async (c) => {
     const cursor = c.req.query('cursor');
     const limit = c.req.query('limit');
-    const page = await VisitEntity.list(c.env, cursor ?? null, limit ? parseInt(limit) : 20);
+    const page = await VisitEntity.list(c.env, cursor ?? null, limit ? parseInt(limit) : 100);
+    // Sort by entryTime descending (frontend helper or server side)
+    page.items.sort((a, b) => b.entryTime - a.entryTime);
     return ok(c, page);
   });
   app.post('/api/visits', async (c) => {
     const body = (await c.req.json()) as VisitRegistration;
-    // Strict Technical Contract Validation
     if (!body.visitorName || body.visitorName.length < 3) return bad(c, 'Invalid visitor name');
     if (!isValidRut(body.visitorRut)) return bad(c, 'Invalid visitor RUT checksum');
     if (!body.apartmentId) return bad(c, 'Apartment destination required');
@@ -39,8 +40,30 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       status: 'active'
     };
     const created = await VisitEntity.create(c.env, newVisit);
-    // Mock 3rd party integration (Twilio/WhatsApp)
-    console.log(`[SIMULATED WHATSAPP] To Apt ${body.apartmentId}: Visitor ${body.visitorName} arriving.`);
     return ok(c, created);
+  });
+  app.post('/api/visits/:id/exit', async (c) => {
+    const id = c.req.param('id');
+    const entity = new VisitEntity(c.env, id);
+    if (!(await entity.exists())) return notFound(c, 'Visit not found');
+    const updated = await entity.mutate(s => ({
+      ...s,
+      status: 'completed',
+      exitTime: Date.now()
+    }));
+    return ok(c, updated);
+  });
+  // COMPLIANCE SETTINGS
+  app.get('/api/settings', async (c) => {
+    const settings = new SettingsEntity(c.env, 'global-settings');
+    const data = await settings.getState();
+    return ok(c, data);
+  });
+  app.post('/api/settings', async (c) => {
+    const body = (await c.req.json()) as Partial<ComplianceSettings>;
+    const settings = new SettingsEntity(c.env, 'global-settings');
+    await settings.patch(body);
+    const data = await settings.getState();
+    return ok(c, data);
   });
 }

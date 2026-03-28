@@ -33,6 +33,13 @@ export interface VisitRegistration {
   purpose: string;
   legalConsent: boolean;
 }
+export interface ComplianceSettings {
+  id: string;
+  retentionDays: number;
+  autoDeleteEnabled: boolean;
+  privacyPolicyUrl: string;
+  whatsappTemplateStatus: 'pending' | 'approved' | 'rejected';
+}
 export interface Chat {
   id: string;
   title: string;
