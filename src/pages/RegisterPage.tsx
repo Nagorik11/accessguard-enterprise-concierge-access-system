@@ -16,6 +16,7 @@ import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { api } from '@/lib/api-client';
 import type { Resident, VisitLog } from '@shared/types';
+import { VISIT_PURPOSES } from '@shared/types';
 const formSchema = z.object({
   visitorName: z.string().min(3, "Se requiere nombre completo"),
   visitorRut: z.string().refine((val) => isValidRut(val), {
@@ -23,6 +24,7 @@ const formSchema = z.object({
   }),
   apartmentId: z.string().min(1, "Seleccione un departamento"),
   purpose: z.string().min(1, "Indique el motivo de la visita"),
+  otherPurpose: z.string().optional(),
   legalConsent: z.boolean().refine((val) => val === true, {
     message: "El consentimiento legal es obligatorio",
   }),
@@ -39,9 +41,11 @@ export function RegisterPage() {
       visitorRut: "",
       apartmentId: "",
       purpose: "",
+      otherPurpose: "",
       legalConsent: false,
     },
   });
+  const selectedPurpose = form.watch("purpose");
   useEffect(() => {
     async function loadResidents() {
       try {
@@ -58,9 +62,15 @@ export function RegisterPage() {
   }, []);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      const finalPurpose = values.purpose === "Otros" 
+        ? `Otros: ${values.otherPurpose || 'No especificado'}`
+        : values.purpose;
       const result = await api<VisitLog>('/api/visits', {
         method: 'POST',
-        body: JSON.stringify(values)
+        body: JSON.stringify({
+          ...values,
+          purpose: finalPurpose
+        })
       });
       setSubmittedData(result);
       setIsSuccess(true);
@@ -237,14 +247,44 @@ export function RegisterPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Motivo de la Visita</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ej. Delivery, Invitado, Mantención" className="h-10" {...field} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Seleccione motivo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {VISIT_PURPOSES.map((p) => (
+                              <SelectItem key={p} value={p}>{p}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
+                {selectedPurpose === "Otros" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="overflow-hidden"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="otherPurpose"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Especifique Motivo</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ej. Entrega de documentos" className="h-10" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+                )}
                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-100 space-y-4 min-h-[140px]">
                   <div className="flex items-start gap-3">
                     <ShieldAlert className="h-5 w-5 text-blue-600 mt-0.5" />

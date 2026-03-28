@@ -1,6 +1,6 @@
 import { IndexedEntity, Entity } from "./core-utils";
-import type { User, Resident, VisitLog, ComplianceSettings, Conserje, CustodyItem, ParkingLog } from "@shared/types";
-import { MOCK_USERS } from "@shared/mock-data";
+import type { User, Resident, VisitLog, ComplianceSettings, Conserje, CustodyItem, ParkingLog } from "../shared/types";
+import { MOCK_USERS } from "../shared/mock-data";
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
   static readonly indexName = "users";

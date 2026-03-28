@@ -3,7 +3,7 @@ import type { Env } from './core-utils';
 import { ResidentEntity, VisitEntity, SettingsEntity, ConserjeEntity, CustodyEntity, ParkingEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
 import { isValidRut } from "../shared/validators";
-import type { VisitRegistration, VisitLog, ComplianceSettings, CustodyItem, ParkingLog, Resident } from "@shared/types";
+import type { VisitRegistration, VisitLog, ComplianceSettings, CustodyItem, ParkingLog, Resident } from "../shared/types";
 /**
  * User routes for AccessGuard.
  * Standardizing logic to prevent "Worker routes failed to load" which usually
@@ -271,8 +271,13 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.post('/api/settings/cleanup', async (c) => {
     try {
       const settings = await (new SettingsEntity(c.env, 'global-settings')).getState();
-      const threshold = Date.now() - (settings.retentionDays * 24 * 60 * 60 * 1000);
-      const [vL, pL, iL] = await Promise.all([VisitEntity.list(c.env), ParkingEntity.list(c.env), CustodyEntity.list(c.env)]);
+      const retentionDays = settings.retentionDays ?? 30;
+      const threshold = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
+      const [vL, pL, iL] = await Promise.all([
+        VisitEntity.list(c.env, null, 1000), 
+        ParkingEntity.list(c.env, null, 1000), 
+        CustodyEntity.list(c.env, null, 1000)
+      ]);
       const vD = (vL.items || []).filter(v => v.status === 'completed' && (v.exitTime || v.entryTime) < threshold).map(v => v.id);
       const pD = (pL.items || []).filter(p => p.status === 'exited' && (p.exitTime || p.entryTime) < threshold).map(p => p.id);
       const iD = (iL.items || []).filter(i => i.status === 'delivered' && (i.deliveredAt || i.receivedAt) < threshold).map(i => i.id);

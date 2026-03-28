@@ -29,6 +29,16 @@ export interface Resident {
   whatsappOptIn: boolean;
   createdAt: number;
 }
+export const VISIT_PURPOSES = [
+  "Invitado Familiar",
+  "Delivery/Paquete",
+  "Servicio Técnico",
+  "Mantenimiento Edificio",
+  "Proveedor/Comercial",
+  "Profesional (Doctor/Abogado)",
+  "Otros"
+] as const;
+export type VisitPurpose = typeof VISIT_PURPOSES[number];
 export interface VisitLog {
   id: string;
   visitorName: string;

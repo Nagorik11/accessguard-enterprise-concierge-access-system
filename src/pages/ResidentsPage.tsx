@@ -20,8 +20,8 @@ const residentSchema = z.object({
   fullName: z.string().min(3, "Mínimo 3 caracteres"),
   apartmentId: z.string().min(1, "Departamento requerido"),
   phone: z.string().min(8, "Teléfono inválido"),
-  rut: z.string().optional().or(z.literal('')),
-  vehiclePlate: z.string().optional().or(z.literal('')),
+  rut: z.string().optional().default(""),
+  vehiclePlate: z.string().optional().default(""),
   whatsappOptIn: z.boolean().default(true),
 });
 type ResidentFormValues = z.infer<typeof residentSchema>;
@@ -59,16 +59,20 @@ export function ResidentsPage() {
   }, []);
   const onSubmit = async (values: ResidentFormValues) => {
     try {
+      const payload = {
+        ...values,
+        whatsappOptIn: !!values.whatsappOptIn,
+      };
       if (editingId) {
         await api(`/api/residents/${editingId}`, {
           method: 'PUT',
-          body: JSON.stringify(values),
+          body: JSON.stringify(payload),
         });
         toast.success("Residente actualizado");
       } else {
         await api('/api/residents', {
           method: 'POST',
-          body: JSON.stringify(values),
+          body: JSON.stringify(payload),
         });
         toast.success("Residente creado exitosamente");
       }
