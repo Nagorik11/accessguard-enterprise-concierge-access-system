@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Search, MessageSquare, Phone, Plus, Edit2, Trash2, Loader2, Car, Filter } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { api } from '@/lib/api-client';
@@ -22,9 +22,9 @@ const residentSchema = z.object({
   fullName: z.string().min(3, "Mínimo 3 caracteres"),
   apartmentId: z.string().min(1, "Departamento requerido"),
   phone: z.string().min(8, "Teléfono inválido"),
-  rut: z.string().default(""),
-  vehiclePlate: z.string().default(""),
-  whatsappOptIn: z.boolean().default(true),
+  rut: z.string(),
+  vehiclePlate: z.string(),
+  whatsappOptIn: z.boolean(),
 });
 type ResidentFormValues = z.infer<typeof residentSchema>;
 export function ResidentsPage() {
@@ -60,7 +60,7 @@ export function ResidentsPage() {
   useEffect(() => {
     loadResidents();
   }, []);
-  const onSubmit = async (values: ResidentFormValues) => {
+  const onSubmit: SubmitHandler<ResidentFormValues> = async (values) => {
     try {
       if (editingId) {
         await api(`/api/residents/${editingId}`, {

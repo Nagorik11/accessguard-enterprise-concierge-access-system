@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShieldCheck, MessageSquare, Scale, Save, Loader2, Info, AlertTriangle, Trash2, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, MessageSquare, Scale, Save, Loader2, AlertTriangle, Trash2, ShieldAlert } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { useAuthStore } from '@/lib/auth-store';
 import type { ComplianceSettings } from '@shared/types';
@@ -47,7 +47,7 @@ export function CompliancePage() {
     }
   };
   const handleManualCleanup = async () => {
-    if (!confirm("ADVERTENCIA: ¿Ejecutar purga de datos ahora? Esta acción eliminará permanentemente los registros que exceden el plazo de retención.")) return;
+    if (!window.confirm("ADVERTENCIA: ¿Ejecutar purga de datos ahora? Esta acción eliminará permanentemente los registros que exceden el plazo de retención.")) return;
     setCleaning(true);
     try {
       const res = await api<any>('/api/settings/cleanup', { method: 'POST' });
@@ -75,7 +75,7 @@ export function CompliancePage() {
             <AlertTriangle className="h-6 w-6 text-amber-500 flex-shrink-0" />
             <div className="space-y-1">
               <p className="font-black text-sm uppercase tracking-tight">Acceso de Solo Lectura</p>
-              <p className="text-xs font-medium">Solo administradores con credenciales de nivel superior pueden modificar los parámetros de seguridad y privacidad.</p>
+              <p className="text-xs font-medium">Solo administradores pueden modificar parámetros de seguridad.</p>
             </div>
           </div>
         )}
@@ -100,18 +100,18 @@ export function CompliancePage() {
                 <ShieldCheck className="h-6 w-6 text-blue-600" />
                 Ciclo de Vida de los Datos
               </CardTitle>
-              <CardDescription className="font-medium">Defina cuánto tiempo se almacenarán los registros personales en el sistema.</CardDescription>
+              <CardDescription>Defina cuánto tiempo se almacenarán los registros personales.</CardDescription>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
               <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border-2 border-slate-100">
                 <div className="space-y-1">
                   <Label className="text-base font-black text-slate-900">Purga Automática de Registros</Label>
-                  <p className="text-xs text-slate-500 font-medium">Eliminación sistemática de bitácoras antiguas para cumplir con la Ley 19.628.</p>
+                  <p className="text-xs text-slate-500 font-medium">Eliminación sistemática de bitácoras antiguas.</p>
                 </div>
                 <Switch
                   disabled={!isAdmin}
                   className="data-[state=checked]:bg-blue-600"
-                  checked={settings?.autoDeleteEnabled}
+                  checked={settings?.autoDeleteEnabled ?? false}
                   onCheckedChange={(val) => setSettings(s => s ? { ...s, autoDeleteEnabled: val } : null)}
                 />
               </div>
@@ -123,15 +123,11 @@ export function CompliancePage() {
                       id="retention"
                       type="number"
                       disabled={!isAdmin}
-                      className="h-14 text-2xl font-black text-center pr-12 focus-visible:ring-blue-600"
-                      value={settings?.retentionDays}
+                      className="h-14 text-2xl font-black text-center pr-12"
+                      value={settings?.retentionDays ?? 30}
                       onChange={(e) => setSettings(s => s ? { ...s, retentionDays: parseInt(e.target.value) || 0 } : null)}
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 uppercase">Días</span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-slate-700">Tiempo de permanencia en bitácora</p>
-                    <p className="text-[10px] text-slate-400 font-medium max-w-xs">Al cumplirse este plazo, los datos de visitas, estacionamiento y recepción de paquetes serán anonimizados o eliminados.</p>
                   </div>
                 </div>
               </div>
@@ -141,20 +137,16 @@ export function CompliancePage() {
             <CardHeader className="border-b bg-green-50/30">
               <CardTitle className="text-lg font-black flex items-center gap-3 text-green-800">
                 <MessageSquare className="h-6 w-6 text-green-600" />
-                Servicio Notificaciones
+                Notificaciones
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase">Estado API:</span>
-                <Badge className="bg-green-100 text-green-700 font-black border-none uppercase text-[10px] px-3">
-                  CONECTADO / OK
-                </Badge>
-              </div>
+              <Badge className="bg-green-100 text-green-700 font-black border-none uppercase text-[10px] px-3">
+                SISTEMA ACTIVO
+              </Badge>
               <div className="p-4 bg-slate-900 rounded-xl font-mono text-[10px] text-green-400 border border-slate-800 leading-relaxed shadow-inner">
-                <p>"Conserjería Digital: Su visita está autorizada para dirigirse a la Unidad 101-A."</p>
+                <p>"Visita autorizada para Unidad {settings?.id || '---'}."</p>
               </div>
-              <Button variant="outline" className="w-full h-11 font-bold border-2 hover:bg-slate-50" disabled={!isAdmin}>Testear WhatsApp</Button>
             </CardContent>
           </Card>
           <Card className="shadow-md border-2 border-red-100 lg:col-span-12 bg-red-50/20 overflow-hidden">
@@ -164,9 +156,9 @@ export function CompliancePage() {
                   <ShieldAlert className="h-8 w-8 text-red-600" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-black text-red-900">Mantenimiento de Infraestructura</h3>
+                  <h3 className="text-xl font-black text-red-900">Mantenimiento de Datos</h3>
                   <p className="text-sm font-medium text-red-700/80 leading-relaxed max-w-2xl">
-                    La purga manual fuerza la eliminación inmediata de registros fuera del plazo legal de <strong>{settings?.retentionDays} días</strong>. Esta acción libera espacio y asegura el cumplimiento.
+                    La purga manual fuerza la eliminación inmediata de registros fuera del plazo legal de {settings?.retentionDays ?? 30} días.
                   </p>
                 </div>
               </div>
@@ -174,7 +166,7 @@ export function CompliancePage() {
                 variant="destructive"
                 onClick={handleManualCleanup}
                 disabled={cleaning || !isAdmin}
-                className="h-14 px-10 font-black text-lg shadow-xl shadow-red-100 flex-shrink-0"
+                className="h-14 px-10 font-black text-lg shadow-xl"
               >
                 {cleaning ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : <Trash2 className="h-6 w-6 mr-2" />}
                 PURGAR BITÁCORA
@@ -185,23 +177,20 @@ export function CompliancePage() {
             <CardHeader className="border-b p-6">
               <CardTitle className="text-lg font-black flex items-center gap-3">
                 <Scale className="h-6 w-6 text-slate-600" />
-                Información Legal del Edificio
+                Información Legal
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8">
               <div className="grid gap-4">
-                <Label htmlFor="policy-url" className="text-sm font-black uppercase text-slate-500">URL de Términos y Condiciones</Label>
+                <Label htmlFor="policy-url" className="text-sm font-black uppercase text-slate-500">URL Privacidad</Label>
                 <Input
                   id="policy-url"
                   disabled={!isAdmin}
-                  className="h-12 bg-slate-50 border-slate-200 focus-visible:ring-blue-600"
-                  placeholder="https://edificio-ejemplo.cl/privacidad"
-                  value={settings?.privacyPolicyUrl}
+                  className="h-12 bg-slate-50"
+                  placeholder="https://..."
+                  value={settings?.privacyPolicyUrl ?? ''}
                   onChange={(e) => setSettings(s => s ? { ...s, privacyPolicyUrl: e.target.value } : null)}
                 />
-                <p className="text-[11px] text-slate-400 font-medium italic mt-1">
-                  Este enlace se utiliza para informar a los visitantes sobre el tratamiento de sus datos personales.
-                </p>
               </div>
             </CardContent>
           </Card>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,7 @@ export function HistoryPage() {
     loadHistory();
   }, []);
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Eliminar este registro de bitácora permanentemente?")) return;
+    if (!id || !window.confirm("¿Eliminar este registro de bitácora permanentemente?")) return;
     try {
       await api(`/api/visits/${id}`, { method: 'DELETE' });
       toast.success("Registro eliminado");
@@ -78,44 +78,40 @@ export function HistoryPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   placeholder="Filtrar por nombre, RUT o unidad..."
-                  className="pl-10 h-11 bg-white border-slate-200"
+                  className="pl-10 h-11 bg-white"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex gap-2">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[180px] h-11 bg-white">
-                    <Clock className="h-4 w-4 mr-2 text-slate-400" />
-                    <SelectValue placeholder="Estado Acceso" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los registros</SelectItem>
-                    <SelectItem value="active">En Recinto</SelectItem>
-                    <SelectItem value="completed">Finalizados</SelectItem>
-                    <SelectItem value="denied">Denegados</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" className="h-11 px-4 bg-white"><Filter className="h-4 w-4" /></Button>
-              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px] h-11 bg-white">
+                  <Clock className="h-4 w-4 mr-2 text-slate-400" />
+                  <SelectValue placeholder="Estado Acceso" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">En Recinto</SelectItem>
+                  <SelectItem value="completed">Cerrado</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-4">
                 <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-                <p className="font-bold text-sm">Consultando registros históricos en Conserjería Digital...</p>
+                <p className="font-bold text-sm">Consultando bitácora...</p>
               </div>
             ) : filteredVisits.length === 0 ? (
-              <div className="text-center py-24 text-slate-400 font-bold uppercase tracking-widest text-xs">No se encontraron movimientos registrados</div>
+              <div className="text-center py-24 text-slate-400 font-bold uppercase tracking-widest text-xs">Sin registros</div>
             ) : (
               <Table>
                 <TableHeader className="bg-slate-50/30">
                   <TableRow className="hover:bg-transparent border-slate-100 uppercase text-[10px] font-black">
                     <TableHead className="w-[180px] pl-6 h-12">Fecha y Hora</TableHead>
                     <TableHead>Identificación</TableHead>
-                    <TableHead>Unidad Destino</TableHead>
-                    <TableHead>Protocolo Legal</TableHead>
+                    <TableHead>Unidad</TableHead>
+                    <TableHead>Protocolo</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right pr-6">Acción</TableHead>
                   </TableRow>
@@ -129,10 +125,10 @@ export function HistoryPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="border-slate-50 hover:bg-slate-50 transition-all duration-200 group h-16"
+                        className="border-slate-50 hover:bg-slate-50 transition-all group h-16"
                       >
                         <TableCell className="pl-6 font-mono text-xs text-slate-500 font-bold">
-                          {format(v.entryTime, 'dd/MM/yy HH:mm', { locale: es })}
+                          {v.entryTime ? format(v.entryTime, 'dd/MM/yy HH:mm', { locale: es }) : 'N/A'}
                         </TableCell>
                         <TableCell>
                           <div className="font-bold text-slate-900 leading-none">{v.visitorName}</div>
@@ -141,8 +137,8 @@ export function HistoryPage() {
                         <TableCell className="font-black text-blue-700">Unidad {v.apartmentId}</TableCell>
                         <TableCell>
                           {v.legalConsent ? (
-                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-none gap-1 py-0 px-2 h-6 font-black text-[9px] group-hover:bg-blue-100 transition-colors">
-                              <ShieldCheck className="h-3 w-3" /> VERIFICADO
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-none h-6 font-black text-[9px]">
+                              <ShieldCheck className="h-3 w-3 mr-1" /> OK
                             </Badge>
                           ) : (
                             <span className="text-slate-300 text-[10px] font-bold">—</span>
@@ -152,12 +148,12 @@ export function HistoryPage() {
                           <Badge
                             variant="outline"
                             className={cn(
-                              "text-[9px] px-2 py-0.5 border-slate-200 uppercase font-black tracking-tighter",
+                              "text-[9px] px-2 py-0.5 border-slate-200 font-black",
                               v.status === 'active' && "bg-green-50 text-green-700 border-green-100",
                               v.status === 'completed' && "text-slate-500 bg-slate-50"
                             )}
                           >
-                            {v.status === 'active' ? 'En Recinto' : v.status === 'completed' ? 'Cerrado' : v.status}
+                            {v.status === 'active' ? 'En Recinto' : 'Cerrado'}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right pr-6 space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
