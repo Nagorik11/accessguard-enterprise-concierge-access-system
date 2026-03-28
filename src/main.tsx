@@ -19,6 +19,7 @@ import { CustodyPage } from '@/pages/CustodyPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { LoginPage } from '@/pages/LoginPage'
+import { ParkingPage } from '@/pages/ParkingPage'
 import { AuthGuard } from '@/components/AuthGuard'
 import { Toaster } from '@/components/ui/sonner'
 const queryClient = new QueryClient();
@@ -36,6 +37,11 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <AuthGuard><RegisterPage /></AuthGuard>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/parking",
+    element: <AuthGuard><ParkingPage /></AuthGuard>,
     errorElement: <RouteErrorBoundary />,
   },
   {

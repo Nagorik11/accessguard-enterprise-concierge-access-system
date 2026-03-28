@@ -59,6 +59,18 @@ export interface CustodyItem {
   status: CustodyStatus;
   createdAt: number;
 }
+export type ParkingStatus = 'parked' | 'exited';
+export type VehicleType = 'car' | 'moto' | 'other';
+export interface ParkingLog {
+  id: string;
+  plate: string;
+  apartmentId: string;
+  vehicleType: VehicleType;
+  entryTime: number;
+  exitTime?: number;
+  status: ParkingStatus;
+  createdAt: number;
+}
 export interface ComplianceSettings {
   id: string;
   retentionDays: number;

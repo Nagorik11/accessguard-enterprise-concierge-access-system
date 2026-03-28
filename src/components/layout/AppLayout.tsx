@@ -1,6 +1,6 @@
 import React from "react";
 import { SidebarProvider, SidebarInset, SidebarTrigger, Sidebar, SidebarHeader, SidebarContent, SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { LayoutDashboard, UserPlus, Users, ShieldCheck, Building2, LogOut, User, Package, History, BarChart3 } from "lucide-react";
+import { LayoutDashboard, UserPlus, Users, ShieldCheck, Building2, LogOut, User, Package, History, BarChart3, Car } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
@@ -47,6 +47,14 @@ export function AppLayout({ children, container = false, className, contentClass
                   <Link to="/register" className="flex items-center gap-3 px-3 py-2">
                     <UserPlus className="h-4 w-4" />
                     <span className="font-medium">Registrar Visita</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/parking"} className="hover:bg-slate-800 transition-colors">
+                  <Link to="/parking" className="flex items-center gap-3 px-3 py-2">
+                    <Car className="h-4 w-4" />
+                    <span className="font-medium">Estacionamiento</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -128,6 +136,7 @@ export function AppLayout({ children, container = false, className, contentClass
             {location.pathname === "/custody" && "Paquetería y Custodia"}
             {location.pathname === "/analytics" && "Estadísticas y Reportes"}
             {location.pathname === "/history" && "Historial de Accesos"}
+            {location.pathname === "/parking" && "Control de Estacionamiento"}
           </h2>
         </header>
         <main className="flex-1 overflow-auto">

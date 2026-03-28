@@ -4,27 +4,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Clock, ShieldCheck, Bell, LogOut, Loader2, Package, CheckCircle2, UserPlus, FileSearch } from 'lucide-react';
+import { Users, Clock, ShieldCheck, Bell, LogOut, Loader2, Package, UserPlus, FileSearch, Car } from 'lucide-react';
 import { format, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api-client';
-import type { VisitLog, CustodyItem } from '@shared/types';
+import type { VisitLog, CustodyItem, ParkingLog } from '@shared/types';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 export function HomePage() {
   const [visits, setVisits] = useState<VisitLog[]>([]);
   const [custodyItems, setCustodyItems] = useState<CustodyItem[]>([]);
+  const [parkingLogs, setParkingLogs] = useState<ParkingLog[]>([]);
   const [loading, setLoading] = useState(true);
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [visitsRes, custodyRes] = await Promise.all([
+      const [visitsRes, custodyRes, parkingRes] = await Promise.all([
         api<{ items: VisitLog[] }>('/api/visits'),
-        api<{ items: CustodyItem[] }>('/api/custody')
+        api<{ items: CustodyItem[] }>('/api/custody'),
+        api<{ items: ParkingLog[] }>('/api/parking')
       ]);
       setVisits(visitsRes.items || []);
       setCustodyItems(custodyRes.items || []);
+      setParkingLogs(parkingRes.items || []);
     } catch (err) {
       console.error("Dashboard fetch failed", err);
       toast.error("Error al cargar datos del panel");
@@ -44,16 +47,17 @@ export function HomePage() {
       toast.error("Error al registrar la salida");
     }
   };
-  const visitsToday = visits.filter(v => isToday(new Date(v.entryTime))).length;
-  const currentlyInside = visits.filter(v => v.status === 'active').length;
-  const inCustody = custodyItems.filter(i => i.status === 'in_custody').length;
+  const visitsToday = (visits || []).filter(v => v.entryTime && isToday(new Date(v.entryTime))).length;
+  const currentlyInside = (visits || []).filter(v => v.status === 'active').length;
+  const inCustody = (custodyItems || []).filter(i => i.status === 'in_custody').length;
+  const parkedNow = (parkingLogs || []).filter(p => p.status === 'parked').length;
   return (
     <AppLayout container>
       <div className="space-y-8">
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Panel de Seguridad</h1>
-            <p className="text-slate-500 mt-1">Monitor de acceso y custodia en tiempo real.</p>
+            <p className="text-slate-500 mt-1">Monitor de acceso, custodia y parking en tiempo real.</p>
           </div>
           <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Clock className="h-4 w-4 mr-2" />}
@@ -70,7 +74,20 @@ export function HomePage() {
                 </div>
                 <div>
                   <p className="font-bold text-slate-900">Nueva Visita</p>
-                  <p className="text-xs text-slate-500">Registrar ingreso</p>
+                  <p className="text-xs text-slate-500">Ingreso peatonal</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/parking">
+            <Card className="hover:border-indigo-500 transition-colors cursor-pointer group bg-white shadow-sm">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                  <Car className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Registrar Vehículo</p>
+                  <p className="text-xs text-slate-500">Acceso vehicular</p>
                 </div>
               </CardContent>
             </Card>
@@ -83,7 +100,7 @@ export function HomePage() {
                 </div>
                 <div>
                   <p className="font-bold text-slate-900">Recibir Item</p>
-                  <p className="text-xs text-slate-500">Nueva encomienda</p>
+                  <p className="text-xs text-slate-500">Encomienda/Custodia</p>
                 </div>
               </CardContent>
             </Card>
@@ -96,22 +113,11 @@ export function HomePage() {
                 </div>
                 <div>
                   <p className="font-bold text-slate-900">Ver Bitácora</p>
-                  <p className="text-xs text-slate-500">Consultar registros</p>
+                  <p className="text-xs text-slate-500">Registros históricos</p>
                 </div>
               </CardContent>
             </Card>
           </Link>
-          <Card className="bg-slate-900 border-none shadow-sm">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400">
-                <ShieldCheck className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-bold text-white">Sistema Activo</p>
-                <p className="text-xs text-slate-400">Todo en orden</p>
-              </div>
-            </CardContent>
-          </Card>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="shadow-sm border-none bg-white">
@@ -125,7 +131,7 @@ export function HomePage() {
           </Card>
           <Card className="shadow-sm border-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-slate-500 uppercase">En el Interior</CardTitle>
+              <CardTitle className="text-xs font-medium text-slate-500 uppercase">Peatones Interior</CardTitle>
               <Clock className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
@@ -134,20 +140,20 @@ export function HomePage() {
           </Card>
           <Card className="shadow-sm border-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-slate-500 uppercase">En Custodia</CardTitle>
-              <Package className="h-4 w-4 text-indigo-600" />
+              <CardTitle className="text-xs font-medium text-slate-500 uppercase">Vehículos Interior</CardTitle>
+              <Car className="h-4 w-4 text-indigo-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{inCustody}</div>
+              <div className="text-2xl font-bold">{parkedNow}</div>
             </CardContent>
           </Card>
           <Card className="shadow-sm border-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-slate-500 uppercase">WhatsApp</CardTitle>
-              <Bell className="h-4 w-4 text-green-500" />
+              <CardTitle className="text-xs font-medium text-slate-500 uppercase">En Custodia</CardTitle>
+              <Package className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">Activo</div>
+              <div className="text-2xl font-bold">{inCustody}</div>
             </CardContent>
           </Card>
         </div>
@@ -173,7 +179,7 @@ export function HomePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {visits.slice(0, 10).map((log) => (
+                  {visits.slice(0, 8).map((log) => (
                     <TableRow key={log.id} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
                       <TableCell>
                         <div className="font-medium text-slate-900">{log.visitorName}</div>
@@ -181,7 +187,7 @@ export function HomePage() {
                       </TableCell>
                       <TableCell className="text-slate-600 font-semibold">{log.apartmentId}</TableCell>
                       <TableCell className="text-slate-500 text-xs">
-                        {format(log.entryTime, 'MMM d, HH:mm', { locale: es })}
+                        {log.entryTime ? format(log.entryTime, 'MMM d, HH:mm', { locale: es }) : '—'}
                       </TableCell>
                       <TableCell className="text-slate-500 text-xs">
                         {log.exitTime ? format(log.exitTime, 'HH:mm', { locale: es }) : '—'}
