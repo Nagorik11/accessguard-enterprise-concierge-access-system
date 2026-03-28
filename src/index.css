@@ -48,14 +48,11 @@
 }
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
-    @apply bg-background text-foreground antialiased;
-  }
-}
-@layer components {
-  .glass-panel {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl dark:bg-slate-900/70 dark:border-slate-800/20;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

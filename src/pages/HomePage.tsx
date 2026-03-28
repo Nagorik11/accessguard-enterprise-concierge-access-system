@@ -99,7 +99,7 @@ export function HomePage() {
                   <p className="text-xs text-slate-500">Consultar registros</p>
                 </div>
               </CardContent>
-            </Link>
+            </Card>
           </Link>
           <Card className="bg-slate-900 border-none shadow-sm">
             <CardContent className="p-6 flex items-center gap-4">
