@@ -3,12 +3,13 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { api } from '@/lib/api-client';
 import type { VisitLog, CustodyItem, ParkingLog } from '@shared/types';
 import { Loader2, TrendingUp, Users, Package, Clock, Calendar, ShieldAlert } from 'lucide-react';
 import { format, startOfDay, subDays, eachDayOfInterval, subMonths, startOfMonth, eachMonthOfInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { cn } from "@/lib/utils";
 export function AnalyticsPage() {
   const [visits, setVisits] = useState<VisitLog[]>([]);
   const [custody, setCustody] = useState<CustodyItem[]>([]);

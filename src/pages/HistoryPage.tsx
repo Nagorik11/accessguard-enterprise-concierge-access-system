@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Download, Filter, Calendar, FileText, Loader2, ShieldCheck, Trash2, Clock } from 'lucide-react';
+import { Search, Download, Filter, FileText, Loader2, ShieldCheck, Trash2, Clock } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import type { VisitLog } from '@shared/types';
 import { format } from 'date-fns';
@@ -14,6 +14,7 @@ import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/auth-store';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from "@/lib/utils";
 export function HistoryPage() {
   const [visits, setVisits] = useState<VisitLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,8 +149,8 @@ export function HistoryPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className={cn(
                               "text-[9px] px-2 py-0.5 border-slate-200 uppercase font-black tracking-tighter",
                               v.status === 'active' && "bg-green-50 text-green-700 border-green-100",

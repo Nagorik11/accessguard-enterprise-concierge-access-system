@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Search, MessageSquare, Phone, User, Plus, Edit2, Trash2, Loader2, Car, Filter } from 'lucide-react';
+import { Search, MessageSquare, Phone, Plus, Edit2, Trash2, Loader2, Car, Filter } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -22,8 +22,8 @@ const residentSchema = z.object({
   fullName: z.string().min(3, "Mínimo 3 caracteres"),
   apartmentId: z.string().min(1, "Departamento requerido"),
   phone: z.string().min(8, "Teléfono inválido"),
-  rut: z.string().optional().transform(v => v || ""),
-  vehiclePlate: z.string().optional().transform(v => v || ""),
+  rut: z.string().default(""),
+  vehiclePlate: z.string().default(""),
   whatsappOptIn: z.boolean().default(true),
 });
 type ResidentFormValues = z.infer<typeof residentSchema>;
@@ -110,7 +110,7 @@ export function ResidentsPage() {
     const floorSet = new Set<string>();
     residents.forEach(r => {
       const match = r.apartmentId.match(/^\d+/);
-      if (match) floorSet.add(match[0].slice(0, -2) || "0");
+      if (match) floorSet.add(match[0]);
     });
     return Array.from(floorSet).sort((a, b) => parseInt(a) - parseInt(b));
   }, [residents]);
@@ -147,7 +147,7 @@ export function ResidentsPage() {
               <SelectContent>
                 <SelectItem value="all">Todos los pisos</SelectItem>
                 {floors.map(f => (
-                  <SelectItem key={f} value={f}>Piso {f || 'Bajo'}</SelectItem>
+                  <SelectItem key={f} value={f}>Piso {f}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
