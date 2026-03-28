@@ -16,7 +16,6 @@ import { api } from '@/lib/api-client';
 import type { Resident } from '@shared/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-// Strict schema alignment: defaults ensure string types match throughout the form lifecycle
 const residentSchema = z.object({
   fullName: z.string().min(3, "Mínimo 3 caracteres"),
   apartmentId: z.string().min(1, "Departamento requerido"),
@@ -129,7 +128,7 @@ export function ResidentsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 placeholder="Buscar por nombre, depto o patente..."
-                className="pl-10"
+                className="pl-10 h-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -142,7 +141,7 @@ export function ResidentsPage() {
               }
             }}>
               <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white h-10">
                   <Plus className="h-4 w-4 mr-2" /> Nuevo Residente
                 </Button>
               </DialogTrigger>
@@ -163,7 +162,7 @@ export function ResidentsPage() {
                           <FormItem className="col-span-2">
                             <FormLabel>Nombre Completo</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ej. Roberto Muñoz" {...field} />
+                              <Input placeholder="Ej. Roberto Muñoz" className="h-10" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -176,9 +175,8 @@ export function ResidentsPage() {
                           <FormItem>
                             <FormLabel>Departamento</FormLabel>
                             <FormControl>
-                              <Input placeholder="101-A" {...field} />
+                              <Input placeholder="101-A" className="h-10" {...field} />
                             </FormControl>
-                            <FormDescription className="text-[10px]">Debe ser único en el sistema.</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -190,7 +188,7 @@ export function ResidentsPage() {
                           <FormItem>
                             <FormLabel>Teléfono de Contacto</FormLabel>
                             <FormControl>
-                              <Input placeholder="+569..." {...field} />
+                              <Input placeholder="+569..." className="h-10" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -203,7 +201,7 @@ export function ResidentsPage() {
                           <FormItem>
                             <FormLabel>RUT (Opcional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="12.345.678-9" {...field} />
+                              <Input placeholder="12.345.678-9" className="h-10" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -216,9 +214,8 @@ export function ResidentsPage() {
                           <FormItem>
                             <FormLabel>Patente Vehículo</FormLabel>
                             <FormControl>
-                              <Input placeholder="ABCD12" className="uppercase" {...field} />
+                              <Input placeholder="ABCD12" className="h-10 uppercase" {...field} />
                             </FormControl>
-                            <FormDescription className="text-[10px]">Para acceso automático.</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -227,7 +224,7 @@ export function ResidentsPage() {
                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 flex items-center justify-between">
                       <div className="space-y-0.5">
                         <FormLabel className="text-sm">Notificaciones WhatsApp</FormLabel>
-                        <p className="text-xs text-slate-500">Enviar avisos de visitas y encomiendas.</p>
+                        <p className="text-xs text-slate-500">Avisos de visitas y encomiendas.</p>
                       </div>
                       <FormField
                         control={form.control}
@@ -245,8 +242,8 @@ export function ResidentsPage() {
                       />
                     </div>
                     <DialogFooter className="pt-4 gap-2">
-                      <Button variant="ghost" type="button" onClick={() => setIsDialogOpen(false)} className="flex-1">Cancelar</Button>
-                      <Button type="submit" className="bg-blue-600 hover:bg-blue-700 flex-1" disabled={form.formState.isSubmitting}>
+                      <Button variant="ghost" type="button" onClick={() => setIsDialogOpen(false)} className="flex-1 h-11">Cancelar</Button>
+                      <Button type="submit" className="bg-blue-600 hover:bg-blue-700 flex-1 h-11" disabled={form.formState.isSubmitting}>
                         {form.formState.isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : editingId ? 'Guardar Cambios' : 'Registrar Residente'}
                       </Button>
                     </DialogFooter>
@@ -296,7 +293,7 @@ export function ResidentsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-slate-600 text-xs">
-                        <div className="flex items-center gap-1.5"><Phone className="h-3 w-3 text-slate-400" /> {resident.phone}</div>
+                        <div className="flex items-center gap-1.5 font-medium"><Phone className="h-3 w-3 text-slate-400" /> {resident.phone}</div>
                       </TableCell>
                       <TableCell>
                         {resident.vehiclePlate ? (
@@ -337,17 +334,6 @@ export function ResidentsPage() {
             )}
           </CardContent>
         </Card>
-        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-6 flex items-start gap-4">
-          <Shield className="h-6 w-6 text-blue-600 flex-shrink-0 mt-1" />
-          <div className="space-y-1">
-            <h4 className="text-sm font-bold text-blue-900">Privacidad y Protección de Datos</h4>
-            <p className="text-xs text-blue-700/80 leading-relaxed">
-              Toda la información contenida en este directorio está sujeta a la Ley de Protección de la Vida Privada.
-              El personal de conserjería tiene prohibido compartir estos datos con terceros externos al edificio
-              sin autorización judicial expresa.
-            </p>
-          </div>
-        </div>
       </div>
     </AppLayout>
   );
