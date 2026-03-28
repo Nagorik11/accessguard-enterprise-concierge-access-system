@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { ResidentEntity, VisitEntity, SettingsEntity, ConserjeEntity } from "./entities";
+import { ResidentEntity, VisitEntity, SettingsEntity, ConserjeEntity, CustodyEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
 import { isValidRut } from "../shared/validators";
-import type { VisitRegistration, VisitLog, ComplianceSettings } from "@shared/types";
+import type { VisitRegistration, VisitLog, ComplianceSettings, CustodyItem } from "@shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // AUTH
   app.post('/api/auth/login', async (c) => {
@@ -67,6 +67,52 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     }));
     return ok(c, updated);
   });
+  // CUSTODY
+  app.get('/api/custody', async (c) => {
+    const cursor = c.req.query('cursor');
+    const limit = c.req.query('limit');
+    const page = await CustodyEntity.list(c.env, cursor ?? null, limit ? parseInt(limit) : 100);
+    const items = page.items || [];
+    items.sort((a, b) => b.receivedAt - a.receivedAt);
+    return ok(c, { items, next: page.next });
+  });
+  app.post('/api/custody', async (c) => {
+    const body = (await c.req.json()) as Partial<CustodyItem>;
+    if (!body.apartmentId || !body.itemDescription || !body.recipientName) {
+      return bad(c, 'Faltan campos obligatorios');
+    }
+    const id = crypto.randomUUID();
+    const now = Date.now();
+    const newItem: CustodyItem = {
+      id,
+      apartmentId: body.apartmentId,
+      itemDescription: body.itemDescription,
+      recipientName: body.recipientName,
+      recipientType: body.recipientType || 'resident',
+      motive: body.motive || '',
+      receivedAt: now,
+      status: 'in_custody',
+      createdAt: now
+    };
+    const created = await CustodyEntity.create(c.env, newItem);
+    return ok(c, created);
+  });
+  app.put('/api/custody/:id/deliver', async (c) => {
+    const id = c.req.param('id');
+    const entity = new CustodyEntity(c.env, id);
+    if (!(await entity.exists())) return notFound(c, 'Pertenencia no encontrada');
+    const updated = await entity.mutate(s => ({
+      ...s,
+      status: 'delivered',
+      deliveredAt: Date.now()
+    }));
+    return ok(c, updated);
+  });
+  app.delete('/api/custody/:id', async (c) => {
+    const id = c.req.param('id');
+    const deleted = await CustodyEntity.delete(c.env, id);
+    return deleted ? ok(c, { id }) : notFound(c);
+  });
   // COMPLIANCE SETTINGS
   app.get('/api/settings', async (c) => {
     const settings = new SettingsEntity(c.env, 'global-settings');
@@ -74,10 +120,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     return ok(c, data);
   });
   app.post('/api/settings', async (c) => {
-    // Role check would usually happen in middleware, but for brevity here:
-    const authHeader = c.req.header('Authorization');
-    // Simplified: Check if "admin" is in user metadata if we had real JWTs. 
-    // For this phase, we allow the request but the UI restricts access.
     const body = (await c.req.json()) as Partial<ComplianceSettings>;
     const settings = new SettingsEntity(c.env, 'global-settings');
     await settings.patch(body);

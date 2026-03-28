@@ -15,6 +15,7 @@ import { HomePage } from '@/pages/HomePage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { ResidentsPage } from '@/pages/ResidentsPage'
 import { CompliancePage } from '@/pages/CompliancePage'
+import { CustodyPage } from '@/pages/CustodyPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { AuthGuard } from '@/components/AuthGuard'
 import { Toaster } from '@/components/ui/sonner'
@@ -33,6 +34,11 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <AuthGuard><RegisterPage /></AuthGuard>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/custody",
+    element: <AuthGuard><CustodyPage /></AuthGuard>,
     errorElement: <RouteErrorBoundary />,
   },
   {

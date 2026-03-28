@@ -4,100 +4,121 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Clock, ShieldCheck, Bell, LogOut, Loader2 } from 'lucide-react';
+import { Users, Clock, ShieldCheck, Bell, LogOut, Loader2, Package, CheckCircle2 } from 'lucide-react';
 import { format, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api-client';
-import type { VisitLog } from '@shared/types';
+import type { VisitLog, CustodyItem } from '@shared/types';
 import { toast } from 'sonner';
 export function HomePage() {
   const [visits, setVisits] = useState<VisitLog[]>([]);
+  const [custodyItems, setCustodyItems] = useState<CustodyItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const fetchVisits = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await api<{ items: VisitLog[] }>('/api/visits');
-      setVisits(response.items || []);
+      const [visitsRes, custodyRes] = await Promise.all([
+        api<{ items: VisitLog[] }>('/api/visits'),
+        api<{ items: CustodyItem[] }>('/api/custody')
+      ]);
+      setVisits(visitsRes.items || []);
+      setCustodyItems(custodyRes.items || []);
     } catch (err) {
       console.error(err);
-      toast.error("Error al cargar los registros de acceso");
+      toast.error("Error al cargar datos del panel");
     } finally {
       setLoading(false);
     }
   };
   useEffect(() => {
-    fetchVisits();
+    fetchData();
   }, []);
   const handleCheckOut = async (id: string) => {
     try {
       await api(`/api/visits/${id}/exit`, { method: 'POST' });
       toast.success("Salida registrada con éxito");
-      fetchVisits();
+      fetchData();
     } catch (err) {
       toast.error("Error al registrar la salida");
     }
   };
   const visitsToday = visits.filter(v => isToday(new Date(v.entryTime))).length;
   const currentlyInside = visits.filter(v => v.status === 'active').length;
+  const inCustody = custodyItems.filter(i => i.status === 'in_custody').length;
+  const deliveredToday = custodyItems.filter(i => i.status === 'delivered' && i.deliveredAt && isToday(new Date(i.deliveredAt))).length;
   return (
     <AppLayout container>
       <div className="space-y-8">
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Panel de Seguridad</h1>
-            <p className="text-slate-500 mt-1">Monitor de acceso al edificio en tiempo real.</p>
+            <p className="text-slate-500 mt-1">Monitor de acceso y custodia en tiempo real.</p>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchVisits} disabled={loading}>
+          <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Clock className="h-4 w-4 mr-2" />}
             Actualizar
           </Button>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <Card className="shadow-sm border-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500 uppercase">Visitas Hoy</CardTitle>
+              <CardTitle className="text-xs font-medium text-slate-500 uppercase">Visitas Hoy</CardTitle>
               <Users className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{visitsToday}</div>
-              <p className="text-xs text-slate-400 font-medium">Desde la medianoche</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm border-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500 uppercase">En el Interior</CardTitle>
+              <CardTitle className="text-xs font-medium text-slate-500 uppercase">En el Interior</CardTitle>
               <Clock className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{currentlyInside}</div>
-              <p className="text-xs text-slate-400 font-medium">Pendiente de salida</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm border-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500 uppercase">Alertas WhatsApp</CardTitle>
+              <CardTitle className="text-xs font-medium text-slate-500 uppercase">En Custodia</CardTitle>
+              <Package className="h-4 w-4 text-indigo-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{inCustody}</div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm border-none bg-white">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-medium text-slate-500 uppercase">Paquetes Entregados</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{deliveredToday}</div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm border-none bg-white">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-medium text-slate-500 uppercase">WhatsApp</CardTitle>
               <Bell className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">100%</div>
-              <p className="text-xs text-slate-400">Sistema en línea</p>
+              <div className="text-2xl font-bold">Activo</div>
             </CardContent>
           </Card>
           <Card className="shadow-sm border-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500 uppercase">Cumplimiento</CardTitle>
-              <ShieldCheck className="h-4 w-4 text-indigo-600" />
+              <CardTitle className="text-xs font-medium text-slate-500 uppercase">Cumplimiento</CardTitle>
+              <ShieldCheck className="h-4 w-4 text-slate-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-indigo-600">Activo</div>
-              <p className="text-xs text-slate-400">Retención de datos aplicada</p>
+              <div className="text-2xl font-bold">100%</div>
             </CardContent>
           </Card>
         </div>
         <Card className="shadow-sm border-none bg-white">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Bitácora de Accesos</CardTitle>
+            <CardTitle className="text-lg font-semibold">Bitácora de Accesos Recientes</CardTitle>
           </CardHeader>
           <CardContent>
             {loading && visits.length === 0 ? (
@@ -117,7 +138,7 @@ export function HomePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {visits.map((log) => (
+                  {visits.slice(0, 10).map((log) => (
                     <TableRow key={log.id} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
                       <TableCell>
                         <div className="font-medium text-slate-900">{log.visitorName}</div>

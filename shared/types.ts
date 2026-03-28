@@ -45,6 +45,20 @@ export interface VisitRegistration {
   purpose: string;
   legalConsent: boolean;
 }
+export type CustodyStatus = 'received' | 'in_custody' | 'delivered';
+export type RecipientType = 'resident' | 'visitor';
+export interface CustodyItem {
+  id: string;
+  apartmentId: string;
+  itemDescription: string;
+  recipientName: string;
+  recipientType: RecipientType;
+  motive: string;
+  receivedAt: number;
+  deliveredAt?: number;
+  status: CustodyStatus;
+  createdAt: number;
+}
 export interface ComplianceSettings {
   id: string;
   retentionDays: number;

@@ -1,6 +1,6 @@
 import React from "react";
 import { SidebarProvider, SidebarInset, SidebarTrigger, Sidebar, SidebarHeader, SidebarContent, SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { LayoutDashboard, UserPlus, Users, ShieldCheck, Building2, LogOut, User } from "lucide-react";
+import { LayoutDashboard, UserPlus, Users, ShieldCheck, Building2, LogOut, User, Package } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
@@ -46,6 +46,14 @@ export function AppLayout({ children, container = false, className, contentClass
                   <Link to="/register" className="flex items-center gap-3 px-3 py-2">
                     <UserPlus className="h-4 w-4" />
                     <span className="font-medium">Registrar Visita</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/custody"} className="hover:bg-slate-800 transition-colors">
+                  <Link to="/custody" className="flex items-center gap-3 px-3 py-2">
+                    <Package className="h-4 w-4" />
+                    <span className="font-medium">Custodia y Paquetes</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

@@ -1,5 +1,5 @@
 import { IndexedEntity, Entity } from "./core-utils";
-import type { User, Resident, VisitLog, ComplianceSettings, Conserje } from "@shared/types";
+import type { User, Resident, VisitLog, ComplianceSettings, Conserje, CustodyItem } from "@shared/types";
 import { MOCK_USERS } from "@shared/mock-data";
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
@@ -46,6 +46,21 @@ export class VisitEntity extends IndexedEntity<VisitLog> {
     purpose: "",
     legalConsent: false,
     status: 'active'
+  };
+}
+export class CustodyEntity extends IndexedEntity<CustodyItem> {
+  static readonly entityName = "custody";
+  static readonly indexName = "custody-index";
+  static readonly initialState: CustodyItem = {
+    id: "",
+    apartmentId: "",
+    itemDescription: "",
+    recipientName: "",
+    recipientType: 'resident',
+    motive: "",
+    receivedAt: 0,
+    status: 'received',
+    createdAt: 0
   };
 }
 export class SettingsEntity extends Entity<ComplianceSettings> {
