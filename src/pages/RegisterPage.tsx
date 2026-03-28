@@ -54,7 +54,6 @@ export function RegisterPage() {
       videoVerified: false,
     },
   });
-  const selectedPurpose = form.watch("purpose");
   const apartmentId = form.watch("apartmentId");
   const visitorName = form.watch("visitorName");
   const videoVerified = form.watch("videoVerified");
@@ -71,27 +70,33 @@ export function RegisterPage() {
     }
     loadResidents();
   }, []);
-  const onSubmit: React.SubmitEventHandler<HTMLFormElement> = async (e) => {
+  const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault();
+    const values = form.getValues();
+    if (!form.formState.isValid) {
+      toast.error("Complete todos los campos requeridos");
+      return;
+    }
     await form.handleSubmit(async (values: RegisterFormValues) => {
-    try {
-      const finalPurpose = values.purpose === "Otros"
-        ? `Otros: ${values.otherPurpose || 'No especificado'}`
-        : values.purpose;
-      const result = await api<VisitLog>('/api/visits', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...values,
-          purpose: finalPurpose
-        })
-      });
-      setSubmittedData(result);
-      setIsSuccess(true);
-      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-      toast.success("Ingreso Autorizado por Conserjería Digital");
+      try {
+        const finalPurpose = values.purpose === "Otros"
+          ? `Otros: ${values.otherPurpose || 'No especificado'}`
+          : values.purpose;
+        const result = await api<VisitLog>('/api/visits', {
+          method: 'POST',
+          body: JSON.stringify({
+            ...values,
+            purpose: finalPurpose
+          })
+        });
+        setSubmittedData(result);
+        setIsSuccess(true);
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        toast.success("Ingreso Autorizado por Conserjería Digital");
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Fallo en el registro");
       }
-    })(e);
+    })();
   };
   const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatRut(e.target.value);

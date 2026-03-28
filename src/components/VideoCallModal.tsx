@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ export function VideoCallModal({ isOpen, onClose, onVerified, apartmentId, visit
   const [timer, setTimer] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pollIntervalRef = useRef<number | null>(null);
+  const currentRoomIdRef = useRef<string>('');
   useEffect(() => {
     if (isOpen) {
       startCall();
@@ -28,7 +30,7 @@ export function VideoCallModal({ isOpen, onClose, onVerified, apartmentId, visit
       stopCall();
     }
     return () => stopCall();
-  }, [isOpen]);
+  }, [isOpen, startCall, stopCall]);
   const startCall = async () => {
     try {
       const userStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -39,10 +41,12 @@ export function VideoCallModal({ isOpen, onClose, onVerified, apartmentId, visit
         body: JSON.stringify({ apartmentId, visitorName })
       });
       setRoom(newRoom);
+      currentRoomIdRef.current = newRoom.id;
       // Signaling Polling
       pollIntervalRef.current = window.setInterval(async () => {
         try {
-          const updatedRoom = await api<VideoRoom>(`/api/video/rooms/${newRoom.id}`);
+          if (!currentRoomIdRef.current) return;
+          const updatedRoom = await api<VideoRoom>(`/api/video/rooms/${currentRoomIdRef.current}`);
           setRoom(updatedRoom);
           if (updatedRoom.status === 'connected') {
             setTimer(prev => prev + 1);
@@ -70,6 +74,7 @@ export function VideoCallModal({ isOpen, onClose, onVerified, apartmentId, visit
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
     }
+    currentRoomIdRef.current = '';
     setRoom(null);
     setTimer(0);
   };
