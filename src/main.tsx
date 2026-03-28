@@ -15,27 +15,34 @@ import { HomePage } from '@/pages/HomePage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { ResidentsPage } from '@/pages/ResidentsPage'
 import { CompliancePage } from '@/pages/CompliancePage'
+import { LoginPage } from '@/pages/LoginPage'
+import { AuthGuard } from '@/components/AuthGuard'
 import { Toaster } from '@/components/ui/sonner'
 const queryClient = new QueryClient();
 const router = createBrowserRouter([
   {
+    path: "/login",
+    element: <LoginPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
     path: "/",
-    element: <HomePage />,
+    element: <AuthGuard><HomePage /></AuthGuard>,
     errorElement: <RouteErrorBoundary />,
   },
   {
     path: "/register",
-    element: <RegisterPage />,
+    element: <AuthGuard><RegisterPage /></AuthGuard>,
     errorElement: <RouteErrorBoundary />,
   },
   {
     path: "/residents",
-    element: <ResidentsPage />,
+    element: <AuthGuard><ResidentsPage /></AuthGuard>,
     errorElement: <RouteErrorBoundary />,
   },
   {
     path: "/compliance",
-    element: <CompliancePage />,
+    element: <AuthGuard><CompliancePage /></AuthGuard>,
     errorElement: <RouteErrorBoundary />,
   },
 ]);

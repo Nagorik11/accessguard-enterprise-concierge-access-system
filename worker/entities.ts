@@ -1,11 +1,25 @@
 import { IndexedEntity, Entity } from "./core-utils";
-import type { User, Resident, VisitLog, ComplianceSettings } from "@shared/types";
+import type { User, Resident, VisitLog, ComplianceSettings, Conserje } from "@shared/types";
 import { MOCK_USERS } from "@shared/mock-data";
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
   static readonly indexName = "users";
   static readonly initialState: User = { id: "", name: "" };
   static seedData = MOCK_USERS;
+}
+const SEED_CONSERJES: Conserje[] = [
+  { id: "c-admin", username: "admin", password: "admin123", fullName: "Administrador Sistema", role: "admin" },
+  { id: "c-staff", username: "staff", password: "staff123", fullName: "Conserje de Turno", role: "conserje" },
+];
+export class ConserjeEntity extends IndexedEntity<Conserje> {
+  static readonly entityName = "conserje";
+  static readonly indexName = "conserjes";
+  static readonly initialState: Conserje = { id: "", username: "", fullName: "", role: "conserje" };
+  static seedData = SEED_CONSERJES;
+  static async findByUsername(env: any, username: string): Promise<Conserje | null> {
+    const { items } = await this.list(env, null, 100);
+    return items.find(u => u.username === username) || null;
+  }
 }
 const SEED_RESIDENTS: Resident[] = [
   { id: "r1", fullName: "Roberto Muñoz", apartmentId: "101-A", phone: "+56912345678", whatsappOptIn: true, createdAt: Date.now() },

@@ -3,6 +3,18 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
 }
+export type UserRole = 'admin' | 'conserje';
+export interface Conserje {
+  id: string;
+  username: string;
+  password?: string; // Only used during auth on server
+  fullName: string;
+  role: UserRole;
+}
+export interface AuthSession {
+  user: Omit<Conserje, 'password'>;
+  token: string;
+}
 export interface User {
   id: string;
   name: string;

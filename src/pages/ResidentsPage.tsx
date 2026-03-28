@@ -16,7 +16,7 @@ export function ResidentsPage() {
     async function loadResidents() {
       try {
         const response = await api<{ items: Resident[] }>('/api/residents');
-        setResidents(response.items);
+        setResidents(response.items || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -25,8 +25,8 @@ export function ResidentsPage() {
     }
     loadResidents();
   }, []);
-  const filteredResidents = residents.filter(r => 
-    r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredResidents = residents.filter(r =>
+    r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.apartmentId.toLowerCase().includes(searchTerm.toLowerCase())
   );
   return (
@@ -34,14 +34,14 @@ export function ResidentsPage() {
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Residents Directory</h1>
-            <p className="text-slate-500 mt-1">Authorized building occupants and notification preferences.</p>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Directorio de Residentes</h1>
+            <p className="text-slate-500 mt-1">Ocupantes autorizados y preferencias de notificación.</p>
           </div>
           <div className="relative w-full md:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input 
-              placeholder="Search by name or apartment..." 
-              className="pl-10" 
+            <Input
+              placeholder="Buscar por nombre o depto..."
+              className="pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -51,22 +51,22 @@ export function ResidentsPage() {
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <User className="h-5 w-5 text-blue-600" />
-              Occupancy List
+              Lista de Ocupación
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="py-12 text-center text-slate-400">Loading directory...</div>
+              <div className="py-12 text-center text-slate-400">Cargando directorio...</div>
             ) : filteredResidents.length === 0 ? (
-              <div className="py-12 text-center text-slate-400">No residents found matching your search.</div>
+              <div className="py-12 text-center text-slate-400">No hay residentes que coincidan con su búsqueda.</div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent border-slate-100">
-                    <TableHead className="text-slate-400 font-bold uppercase text-[10px]">Full Name</TableHead>
-                    <TableHead className="text-slate-400 font-bold uppercase text-[10px]">Apartment</TableHead>
-                    <TableHead className="text-slate-400 font-bold uppercase text-[10px]">Contact</TableHead>
-                    <TableHead className="text-slate-400 font-bold uppercase text-[10px]">WhatsApp Opt-in</TableHead>
+                    <TableHead className="text-slate-400 font-bold uppercase text-[10px]">Nombre Completo</TableHead>
+                    <TableHead className="text-slate-400 font-bold uppercase text-[10px]">Departamento</TableHead>
+                    <TableHead className="text-slate-400 font-bold uppercase text-[10px]">Contacto</TableHead>
+                    <TableHead className="text-slate-400 font-bold uppercase text-[10px]">WhatsApp</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -86,13 +86,13 @@ export function ResidentsPage() {
                           variant="secondary"
                           className={cn(
                             "text-[10px] px-2 py-0 gap-1",
-                            resident.whatsappOptIn 
-                              ? "bg-green-100 text-green-700 hover:bg-green-100" 
+                            resident.whatsappOptIn
+                              ? "bg-green-100 text-green-700 hover:bg-green-100"
                               : "bg-slate-100 text-slate-500 hover:bg-slate-100"
                           )}
                         >
                           <MessageSquare className={cn("h-3 w-3", resident.whatsappOptIn ? "text-green-600" : "text-slate-400")} />
-                          {resident.whatsappOptIn ? "Enabled" : "Disabled"}
+                          {resident.whatsappOptIn ? "Habilitado" : "Desactivado"}
                         </Badge>
                       </TableCell>
                     </TableRow>
