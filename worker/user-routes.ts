@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { Env } from './core-utils';
 import { ResidentEntity, VisitEntity, SettingsEntity, ConserjeEntity, CustodyEntity, ParkingEntity, RoomEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
-import { isValidRut } from "../shared/validators";
+import { isValidRut } from "./validators";
 import type { VisitRegistration, VisitLog, ComplianceSettings, CustodyItem, ParkingLog, Resident, VideoRoom } from "../shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // AUTH

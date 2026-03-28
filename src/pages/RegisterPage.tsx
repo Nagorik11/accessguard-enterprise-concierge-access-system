@@ -30,16 +30,19 @@ const formSchema = z.object({
   legalConsent: z.boolean().refine((val) => val === true, {
     message: "El consentimiento legal es obligatorio",
   }),
-  videoVerified: z.boolean().default(false),
+  videoVerified: z.boolean(),
   verificationRoomId: z.string().optional(),
 });
+
+type RegisterFormValues = z.infer<typeof formSchema>;
+
 export function RegisterPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [residents, setResidents] = useState<Resident[]>([]);
   const [isLoadingResidents, setIsLoadingResidents] = useState(true);
   const [submittedData, setSubmittedData] = useState<VisitLog | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<RegisterFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       visitorName: "",
@@ -68,7 +71,8 @@ export function RegisterPage() {
     }
     loadResidents();
   }, []);
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit: React.SubmitEventHandler<HTMLFormElement> = async (e) => {
+    await form.handleSubmit(async (values: RegisterFormValues) => {
     try {
       const finalPurpose = values.purpose === "Otros"
         ? `Otros: ${values.otherPurpose || 'No especificado'}`
@@ -84,9 +88,10 @@ export function RegisterPage() {
       setIsSuccess(true);
       confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       toast.success("Ingreso Autorizado por Conserjería Digital");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Fallo en el registro");
-    }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Fallo en el registro");
+      }
+    })(e);
   };
   const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatRut(e.target.value);
@@ -166,8 +171,8 @@ export function RegisterPage() {
               Complete la ficha de ingreso para autorizar al visitante en el sistema digital.
             </CardDescription>
           </CardHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Form {...form as any}>
+            <form onSubmit={onSubmit} className="space-y-6">
               <CardContent className="space-y-8 p-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
