@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { api } from '@/lib/api-client';
 import type { VisitLog, CustodyItem, ParkingLog } from '@shared/types';
@@ -41,21 +42,18 @@ export function AnalyticsPage() {
       </AppLayout>
     );
   }
-  // Daily visits (Last 7 days)
   const last7Days = eachDayOfInterval({ start: subDays(new Date(), 6), end: new Date() });
   const timelineData = last7Days.map(date => {
     const dayStr = format(date, 'EEE', { locale: es });
     const count = visits.filter(v => v.entryTime && startOfDay(new Date(v.entryTime)).getTime() === startOfDay(date).getTime()).length;
     return { name: dayStr, visitas: count };
   });
-  // Monthly visits (Last 6 months)
   const last6Months = eachMonthOfInterval({ start: subMonths(new Date(), 5), end: new Date() });
   const monthlyData = last6Months.map(date => {
     const monthStr = format(date, 'MMM', { locale: es });
     const count = visits.filter(v => v.entryTime && startOfMonth(new Date(v.entryTime)).getTime() === startOfMonth(date).getTime()).length;
     return { name: monthStr, visitas: count };
   });
-  // Top Apartments
   const aptCounts = visits.reduce((acc, v) => {
     if (v.apartmentId) acc[v.apartmentId] = (acc[v.apartmentId] || 0) + 1;
     return acc;
@@ -64,24 +62,21 @@ export function AnalyticsPage() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([name, value]) => ({ name, value }));
-  const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
   return (
     <AppLayout container>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Estadísticas de Gestión</h1>
             <p className="text-slate-500 mt-1">Análisis profundo de tráfico y seguridad.</p>
           </div>
-          <div className="flex gap-2">
-            <Badge variant="outline" className="h-8 px-3 gap-2 bg-white">
-              <Calendar className="h-3 w-3" />
-              Últimos 6 meses
-            </Badge>
-          </div>
+          <Badge variant="outline" className="h-8 px-3 gap-2 bg-white">
+            <Calendar className="h-3 w-3" />
+            Últimos 6 meses
+          </Badge>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-sm bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xs font-bold uppercase text-slate-500">Total Visitas</CardTitle>
               <Users className="h-4 w-4 text-blue-600" />
@@ -91,7 +86,7 @@ export function AnalyticsPage() {
               <p className="text-[10px] text-green-600 font-medium">Histórico total</p>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-sm bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xs font-bold uppercase text-slate-500">Ocupación Parking</CardTitle>
               <Clock className="h-4 w-4 text-orange-600" />
@@ -101,7 +96,7 @@ export function AnalyticsPage() {
               <p className="text-[10px] text-slate-400 font-medium">Vehículos en interior</p>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-sm bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xs font-bold uppercase text-slate-500">Paquetes Activos</CardTitle>
               <Package className="h-4 w-4 text-indigo-600" />
@@ -111,7 +106,7 @@ export function AnalyticsPage() {
               <p className="text-[10px] text-slate-400 font-medium">Pendientes de retiro</p>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-sm bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xs font-bold uppercase text-slate-500">Eficiencia</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-600" />
@@ -123,9 +118,9 @@ export function AnalyticsPage() {
           </Card>
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="p-6 border-none shadow-sm">
+          <Card className="p-6 border-none shadow-sm bg-white">
             <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-lg">Volumen Mensual de Visitas</CardTitle>
+              <CardTitle className="text-lg font-semibold">Volumen Mensual de Visitas</CardTitle>
               <CardDescription>Comparativa de ingresos por mes.</CardDescription>
             </CardHeader>
             <div className="h-[300px] w-full mt-4">
@@ -140,9 +135,9 @@ export function AnalyticsPage() {
               </ResponsiveContainer>
             </div>
           </Card>
-          <Card className="p-6 border-none shadow-sm">
+          <Card className="p-6 border-none shadow-sm bg-white">
             <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-lg">Top 5 Deptos con Más Visitas</CardTitle>
+              <CardTitle className="text-lg font-semibold">Top 5 Deptos con Más Visitas</CardTitle>
               <CardDescription>Ranking de unidades con mayor flujo.</CardDescription>
             </CardHeader>
             <div className="h-[300px] w-full mt-4">
@@ -158,9 +153,9 @@ export function AnalyticsPage() {
             </div>
           </Card>
         </div>
-        <Card className="p-6 border-none shadow-sm">
+        <Card className="p-6 border-none shadow-sm bg-white">
           <CardHeader className="px-0 pt-0">
-            <CardTitle className="text-lg">Tendencia Diaria (Últimos 7 días)</CardTitle>
+            <CardTitle className="text-lg font-semibold">Tendencia Diaria (Últimos 7 días)</CardTitle>
           </CardHeader>
           <div className="h-[300px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">

@@ -7,7 +7,7 @@ export type UserRole = 'admin' | 'conserje';
 export interface Conserje {
   id: string;
   username: string;
-  password?: string; // Only used during auth on server
+  password?: string;
   fullName: string;
   role: UserRole;
 }
@@ -77,6 +77,12 @@ export interface ComplianceSettings {
   autoDeleteEnabled: boolean;
   privacyPolicyUrl: string;
   whatsappTemplateStatus: 'pending' | 'approved' | 'rejected';
+}
+export interface CleanupResponse {
+  visitsDeleted: number;
+  parkingDeleted: number;
+  itemsDeleted: number;
+  timestamp: number;
 }
 export interface Chat {
   id: string;

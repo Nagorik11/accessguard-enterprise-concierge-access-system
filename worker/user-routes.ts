@@ -71,6 +71,11 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const created = await VisitEntity.create(c.env, newVisit);
     return ok(c, created);
   });
+  app.delete('/api/visits/:id', async (c) => {
+    const id = c.req.param('id');
+    const deleted = await VisitEntity.delete(c.env, id);
+    return deleted ? ok(c, { id }) : notFound(c);
+  });
   app.post('/api/visits/:id/exit', async (c) => {
     const id = c.req.param('id');
     const entity = new VisitEntity(c.env, id);
@@ -201,6 +206,47 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     } catch (e) {
       console.error("[SETTINGS POST ERROR]", e);
       return bad(c, "Error al guardar configuración");
+    }
+  });
+  app.post('/api/settings/cleanup', async (c) => {
+    try {
+      const settingsInst = new SettingsEntity(c.env, 'global-settings');
+      const settings = await settingsInst.getState();
+      const threshold = Date.now() - (settings.retentionDays * 24 * 60 * 60 * 1000);
+
+      const [visitsList, parkingList, itemsList] = await Promise.all([
+        VisitEntity.list(c.env, null, 1000),
+        ParkingEntity.list(c.env, null, 1000),
+        CustodyEntity.list(c.env, null, 1000)
+      ]);
+
+      const visitsToDelete = (visitsList.items || [])
+        .filter(v => v.status === 'completed' && (v.exitTime || v.entryTime) < threshold)
+        .map(v => v.id);
+      
+      const parkingToDelete = (parkingList.items || [])
+        .filter(p => p.status === 'exited' && (p.exitTime || p.entryTime) < threshold)
+        .map(p => p.id);
+
+      const itemsToDelete = (itemsList.items || [])
+        .filter(i => i.status === 'delivered' && (i.deliveredAt || i.receivedAt) < threshold)
+        .map(i => i.id);
+
+      const [vd, pd, id] = await Promise.all([
+        VisitEntity.deleteMany(c.env, visitsToDelete),
+        ParkingEntity.deleteMany(c.env, parkingToDelete),
+        CustodyEntity.deleteMany(c.env, itemsToDelete)
+      ]);
+
+      return ok(c, {
+        visitsDeleted: vd,
+        parkingDeleted: pd,
+        itemsDeleted: id,
+        timestamp: Date.now()
+      });
+    } catch (e) {
+      console.error("[CLEANUP ERROR]", e);
+      return bad(c, "Error durante el proceso de limpieza");
     }
   });
 }

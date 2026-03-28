@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShieldCheck, MessageSquare, Scale, Save, Loader2, Info, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, MessageSquare, Scale, Save, Loader2, Info, AlertTriangle, Trash2, ShieldAlert } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import { useAuthStore } from '@/lib/auth-store';
 import type { ComplianceSettings } from '@shared/types';
@@ -15,6 +15,7 @@ export function CompliancePage() {
   const [settings, setSettings] = useState<ComplianceSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
   const user = useAuthStore(s => s.user);
   useEffect(() => {
     async function loadSettings() {
@@ -44,6 +45,21 @@ export function CompliancePage() {
       setSaving(false);
     }
   };
+
+  const handleManualCleanup = async () => {
+    if (!confirm("¿Ejecutar limpieza manual ahora? Se eliminarán permanentemente los registros que excedan el periodo de retención.")) return;
+    
+    setCleaning(true);
+    try {
+      const res = await api<any>('/api/settings/cleanup', { method: 'POST' });
+      toast.success(`Limpieza finalizada: ${res.visitsDeleted} visitas, ${res.parkingDeleted} parking y ${res.itemsDeleted} items eliminados.`);
+    } catch (err) {
+      toast.error("Error al ejecutar limpieza de datos");
+    } finally {
+      setCleaning(false);
+    }
+  };
+
   if (loading) {
     return (
       <AppLayout container>
@@ -139,6 +155,26 @@ export function CompliancePage() {
               <Button variant="outline" className="w-full text-xs h-8" disabled={!isAdmin}>Probar Integración</Button>
             </CardContent>
           </Card>
+          
+          <Card className="shadow-sm border-none lg:col-span-3 bg-red-50/30 border-red-100 border">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold flex items-center gap-2 text-red-900">
+                <ShieldAlert className="h-5 w-5" />
+                Mantenimiento de Datos y Privacidad
+              </CardTitle>
+              <CardDescription className="text-red-700/70">Acciones administrativas de alto impacto sobre el ciclo de vida de la información.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-red-800 max-w-2xl leading-relaxed">
+                La ejecución manual de la limpieza procesará todos los registros (Visitas, Estacionamiento y Paquetes) que cumplan con la política de retención actual de <strong>{settings?.retentionDays} días</strong>. Esta acción no se puede deshacer.
+              </div>
+              <Button variant="destructive" onClick={handleManualCleanup} disabled={cleaning || !isAdmin} className="whitespace-nowrap h-11 px-8">
+                {cleaning ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+                Ejecutar Limpieza Manual
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card className="shadow-sm border-none lg:col-span-3">
             <CardHeader>
               <CardTitle className="text-lg font-semibold flex items-center gap-2">

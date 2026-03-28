@@ -67,7 +67,7 @@ export function HomePage() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link to="/register">
-            <Card className="hover:border-blue-500 transition-colors cursor-pointer group bg-white shadow-sm">
+            <Card className="hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group bg-white shadow-sm">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="h-12 w-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                   <UserPlus className="h-6 w-6" />
@@ -80,7 +80,7 @@ export function HomePage() {
             </Card>
           </Link>
           <Link to="/parking">
-            <Card className="hover:border-indigo-500 transition-colors cursor-pointer group bg-white shadow-sm">
+            <Card className="hover:border-indigo-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group bg-white shadow-sm">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                   <Car className="h-6 w-6" />
@@ -93,7 +93,7 @@ export function HomePage() {
             </Card>
           </Link>
           <Link to="/custody">
-            <Card className="hover:border-orange-500 transition-colors cursor-pointer group bg-white shadow-sm">
+            <Card className="hover:border-orange-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group bg-white shadow-sm">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="h-12 w-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-colors">
                   <Package className="h-6 w-6" />
@@ -106,7 +106,7 @@ export function HomePage() {
             </Card>
           </Link>
           <Link to="/history">
-            <Card className="hover:border-slate-500 transition-colors cursor-pointer group bg-white shadow-sm">
+            <Card className="hover:border-slate-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group bg-white shadow-sm">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-600 group-hover:bg-slate-600 group-hover:text-white transition-colors">
                   <FileSearch className="h-6 w-6" />
@@ -225,6 +225,15 @@ export function HomePage() {
             )}
           </CardContent>
         </Card>
+
+        <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-slate-100 text-[10px] text-slate-400 gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5"><ShieldCheck className="h-3 w-3 text-green-500" /> Sistema AccessGuard v1.2.0</div>
+            <div className="w-px h-3 bg-slate-200 hidden md:block" />
+            <div>Última Sincronización: {format(new Date(), 'HH:mm:ss')}</div>
+          </div>
+          <div className="font-medium tracking-wider uppercase">Certificado por Cumplimiento Legal 2024</div>
+        </div>
       </div>
     </AppLayout>
   );
