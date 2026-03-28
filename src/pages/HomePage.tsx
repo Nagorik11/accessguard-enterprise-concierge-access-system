@@ -1,138 +1,108 @@
-// Home page of the app.
-// Currently a demo placeholder "please wait" screen.
-// Replace this file with your actual app UI. Do not delete it to use some other file as homepage. Simply replace the entire contents of this file.
-
-import { useEffect, useMemo, useState } from 'react'
-import { Sparkles } from 'lucide-react'
-
-import { ThemeToggle } from '@/components/ThemeToggle'
-import { HAS_TEMPLATE_DEMO, TemplateDemo } from '@/components/TemplateDemo'
-import { Button } from '@/components/ui/button'
-import { Toaster, toast } from '@/components/ui/sonner'
-
-function formatDuration(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000))
-  const m = Math.floor(total / 60)
-  const s = total % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
+import React from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Users, Clock, ShieldCheck, Bell } from 'lucide-react';
+import { format } from 'date-fns';
+const MOCK_LOGS = [
+  { id: '1', visitor: 'Juan Pérez', rut: '12.345.678-9', apt: '402-A', time: new Date(), status: 'active' },
+  { id: '2', visitor: 'Maria Garcia', rut: '15.221.334-K', apt: '101-B', time: new Date(Date.now() - 3600000), status: 'completed' },
+  { id: '3', visitor: 'Delivery Rappi', rut: '23.445.123-4', apt: '805-C', time: new Date(Date.now() - 7200000), status: 'completed' },
+  { id: '4', visitor: 'Carlos Soto', rut: '18.990.221-3', apt: '202-A', time: new Date(Date.now() - 10800000), status: 'denied' },
+];
 export function HomePage() {
-  const [coins, setCoins] = useState(0)
-  const [isRunning, setIsRunning] = useState(false)
-  const [startedAt, setStartedAt] = useState<number | null>(null)
-  const [elapsedMs, setElapsedMs] = useState(0)
-
-  useEffect(() => {
-    if (!isRunning || startedAt === null) return
-
-    const t = setInterval(() => {
-      setElapsedMs(Date.now() - startedAt)
-    }, 250)
-
-    return () => clearInterval(t)
-  }, [isRunning, startedAt])
-
-  const formatted = useMemo(() => formatDuration(elapsedMs), [elapsedMs])
-
-  const onPleaseWait = () => {
-    setCoins((c) => c + 1)
-
-    if (!isRunning) {
-      // Resume from the current elapsed time
-      setStartedAt(Date.now() - elapsedMs)
-      setIsRunning(true)
-      toast.success('Building your app…', {
-        description: "Hang tight — we're setting everything up.",
-      })
-      return
-    }
-
-    setIsRunning(false)
-    toast.info('Still working…', {
-      description: 'You can come back in a moment.',
-    })
-  }
-
-  const onReset = () => {
-    setCoins(0)
-    setIsRunning(false)
-    setStartedAt(null)
-    setElapsedMs(0)
-    toast('Reset complete')
-  }
-
-  const onAddCoin = () => {
-    setCoins((c) => c + 1)
-    toast('Coin added')
-  }
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 overflow-hidden relative">
-      <ThemeToggle />
-      <div className="absolute inset-0 bg-gradient-rainbow opacity-10 dark:opacity-20 pointer-events-none" />
-
-      <div className="text-center space-y-8 relative z-10 animate-fade-in w-full">
-        <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-primary floating">
-            <Sparkles className="w-8 h-8 text-white rotating" />
-          </div>
+    <AppLayout container>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Security Dashboard</h1>
+          <p className="text-slate-500 mt-1">Real-time overview of building access and compliance.</p>
         </div>
-
-        <div className="space-y-3">
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-            Creating your <span className="text-gradient">app</span>
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto text-pretty">
-            Your application would be ready soon.
-          </p>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="shadow-sm border-none bg-white">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-500 uppercase">Visits Today</CardTitle>
+              <Users className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">24</div>
+              <p className="text-xs text-green-600 font-medium">+12% from yesterday</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm border-none bg-white">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-500 uppercase">Currently Inside</CardTitle>
+              <Clock className="h-4 w-4 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">3</div>
+              <p className="text-xs text-slate-400">Average stay: 45m</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm border-none bg-white">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-500 uppercase">WhatsApp Alerts</CardTitle>
+              <Bell className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">100%</div>
+              <p className="text-xs text-slate-400">Delivery success rate</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm border-none bg-white">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-500 uppercase">Compliance Score</CardTitle>
+              <ShieldCheck className="h-4 w-4 text-indigo-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">Gold</div>
+              <p className="text-xs text-slate-400">Data retention active</p>
+            </CardContent>
+          </Card>
         </div>
-
-        {HAS_TEMPLATE_DEMO ? (
-          <div className="max-w-5xl mx-auto text-left">
-            <TemplateDemo />
-          </div>
-        ) : (
-          <>
-            <div className="flex justify-center gap-4">
-              <Button
-                size="lg"
-                onClick={onPleaseWait}
-                className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200"
-                aria-live="polite"
-              >
-                Please Wait
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-              <div>
-                Time elapsed:{' '}
-                <span className="font-medium tabular-nums text-foreground">{formatted}</span>
-              </div>
-              <div>
-                Coins:{' '}
-                <span className="font-medium tabular-nums text-foreground">{coins}</span>
-              </div>
-            </div>
-
-            <div className="flex justify-center gap-2">
-              <Button variant="outline" size="sm" onClick={onReset}>
-                Reset
-              </Button>
-              <Button variant="outline" size="sm" onClick={onAddCoin}>
-                Add Coin
-              </Button>
-            </div>
-          </>
-        )}
+        <Card className="shadow-sm border-none bg-white">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Recent Access Logs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-slate-100">
+                  <TableHead className="text-slate-400 font-bold uppercase text-[10px]">Visitor</TableHead>
+                  <TableHead className="text-slate-400 font-bold uppercase text-[10px]">RUT</TableHead>
+                  <TableHead className="text-slate-400 font-bold uppercase text-[10px]">Apartment</TableHead>
+                  <TableHead className="text-slate-400 font-bold uppercase text-[10px]">Entry Time</TableHead>
+                  <TableHead className="text-slate-400 font-bold uppercase text-[10px]">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {MOCK_LOGS.map((log) => (
+                  <TableRow key={log.id} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
+                    <TableCell className="font-medium text-slate-900">{log.visitor}</TableCell>
+                    <TableCell className="text-slate-500 font-mono text-xs">{log.rut}</TableCell>
+                    <TableCell className="text-slate-600">{log.apt}</TableCell>
+                    <TableCell className="text-slate-500 text-xs">{format(log.time, 'HH:mm')}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="secondary" 
+                        className={cn(
+                          "capitalize text-[10px] px-2 py-0",
+                          log.status === 'active' && "bg-green-100 text-green-700 hover:bg-green-100",
+                          log.status === 'completed' && "bg-slate-100 text-slate-600 hover:bg-slate-100",
+                          log.status === 'denied' && "bg-red-100 text-red-700 hover:bg-red-100",
+                        )}
+                      >
+                        {log.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
-
-      <footer className="absolute bottom-8 text-center text-muted-foreground/80">
-        <p>Powered by Cloudflare</p>
-      </footer>
-
-      <Toaster richColors closeButton />
-    </div>
-  )
+    </AppLayout>
+  );
 }
