@@ -42,7 +42,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/compliance",
-    element: <AuthGuard><CompliancePage /></AuthGuard>,
+    element: <AuthGuard adminOnly={true}><CompliancePage /></AuthGuard>,
     errorElement: <RouteErrorBoundary />,
   },
 ]);
