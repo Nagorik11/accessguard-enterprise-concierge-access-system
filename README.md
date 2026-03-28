@@ -1,6 +1,6 @@
 # Access Guard
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Nagorik11/accessguard-enterprise-concierge-access-system)
 
 A production-ready full-stack application powered by Cloudflare Workers. Features a modern React frontend with shadcn/ui, Tailwind CSS, and a robust backend using Hono and Durable Objects for scalable, multi-tenant entity storage (Users, Chats, Messages). Includes real-time capabilities, pagination, CRUD operations, and automatic seeding.
 
@@ -120,7 +120,7 @@ Available endpoints: `/api/users`, `/api/chats`, `/api/chats/:id/messages`, DELE
    - Your app is live at `https://<subdomain>.pages.dev` or custom domain.
 
 3. **One-Click Deploy**:
-   [cloudflarebutton]
+   [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Nagorik11/accessguard-enterprise-concierge-access-system)
 
 4. **Configure**:
    - Update `wrangler.jsonc` for bindings/migrations.
