@@ -4,7 +4,7 @@
  */
  {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "vite-cf-do-runner",
+	"name": "access-guard--h8g-otidb-pq3qth1frj",
 	"main": "worker/index.ts",
 	"compatibility_date": "2025-04-24",
 	"assets": {
