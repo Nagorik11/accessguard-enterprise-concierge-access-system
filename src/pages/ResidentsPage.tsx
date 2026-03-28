@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -20,8 +20,8 @@ const residentSchema = z.object({
   fullName: z.string().min(3, "Mínimo 3 caracteres"),
   apartmentId: z.string().min(1, "Departamento requerido"),
   phone: z.string().min(8, "Teléfono inválido"),
-  rut: z.string().optional(),
-  vehiclePlate: z.string().optional(),
+  rut: z.string().optional().or(z.literal('')),
+  vehiclePlate: z.string().optional().or(z.literal('')),
   whatsappOptIn: z.boolean().default(true),
 });
 type ResidentFormValues = z.infer<typeof residentSchema>;
@@ -105,11 +105,11 @@ export function ResidentsPage() {
   const filteredResidents = residents.filter(r =>
     r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.apartmentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.vehiclePlate?.toLowerCase().includes(searchTerm.toLowerCase())
+    (r.vehiclePlate && r.vehiclePlate.toLowerCase().includes(searchTerm.toLowerCase()))
   );
   return (
     <AppLayout container>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 lg:py-12 space-y-8">
+      <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Directorio de Residentes</h1>
@@ -333,8 +333,8 @@ export function ResidentsPage() {
           <div className="space-y-1">
             <h4 className="text-sm font-bold text-blue-900">Privacidad y Protección de Datos</h4>
             <p className="text-xs text-blue-700/80 leading-relaxed">
-              Toda la información contenida en este directorio está sujeta a la Ley de Protección de la Vida Privada. 
-              El personal de conserjería tiene prohibido compartir estos datos con terceros externos al edificio 
+              Toda la información contenida en este directorio está sujeta a la Ley de Protección de la Vida Privada.
+              El personal de conserjería tiene prohibido compartir estos datos con terceros externos al edificio
               sin autorización judicial expresa.
             </p>
           </div>
