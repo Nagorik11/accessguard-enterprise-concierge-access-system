@@ -12,12 +12,18 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
       ...init,
       headers
     });
+    const contentType = res.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await res.text();
+      console.error(`[API FATAL] Non-JSON response from ${path}:`, text.slice(0, 200));
+      throw new Error(`Error del servidor (${res.status}): El servidor no devolvió un formato válido.`);
+    }
     let json: ApiResponse<T>;
     try {
       json = (await res.json()) as ApiResponse<T>;
     } catch (parseError) {
       console.warn(`[API] Path ${path} returned malformed JSON`);
-      throw new Error(`Error del servidor (${res.status}): Respuesta no válida.`);
+      throw new Error(`Error del servidor (${res.status}): Respuesta corrupta.`);
     }
     if (!res.ok || !json.success) {
       const errMsg = json.error || `Error ${res.status}: ${res.statusText}`;
@@ -25,7 +31,6 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
       throw new Error(errMsg);
     }
     if (json.data === undefined) {
-      // Some endpoints might return success but no data (e.g. 204 behavior simulation)
       return {} as T;
     }
     return json.data;

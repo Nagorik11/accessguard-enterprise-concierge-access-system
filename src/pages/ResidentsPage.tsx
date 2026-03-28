@@ -9,19 +9,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Search, MessageSquare, Phone, User, Plus, Edit2, Trash2, Loader2, Car, Shield } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { api } from '@/lib/api-client';
 import type { Resident } from '@shared/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+// Strict schema alignment: defaults ensure string types match throughout the form lifecycle
 const residentSchema = z.object({
   fullName: z.string().min(3, "Mínimo 3 caracteres"),
   apartmentId: z.string().min(1, "Departamento requerido"),
   phone: z.string().min(8, "Teléfono inválido"),
-  rut: z.string().optional().default(""),
-  vehiclePlate: z.string().optional().default(""),
+  rut: z.string().default(""),
+  vehiclePlate: z.string().default(""),
   whatsappOptIn: z.boolean().default(true),
 });
 type ResidentFormValues = z.infer<typeof residentSchema>;
@@ -57,11 +58,15 @@ export function ResidentsPage() {
   useEffect(() => {
     loadResidents();
   }, []);
-  const onSubmit = async (values: ResidentFormValues) => {
+  const onSubmit: SubmitHandler<ResidentFormValues> = async (values) => {
     try {
       const payload = {
-        ...values,
-        whatsappOptIn: !!values.whatsappOptIn,
+        fullName: values.fullName,
+        apartmentId: values.apartmentId,
+        phone: values.phone,
+        rut: values.rut || undefined,
+        vehiclePlate: values.vehiclePlate || undefined,
+        whatsappOptIn: values.whatsappOptIn,
       };
       if (editingId) {
         await api(`/api/residents/${editingId}`, {
