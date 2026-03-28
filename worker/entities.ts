@@ -1,5 +1,5 @@
 import { IndexedEntity, Entity } from "./core-utils";
-import type { User, Resident, VisitLog, ComplianceSettings, Conserje, CustodyItem, ParkingLog } from "../shared/types";
+import type { User, Resident, VisitLog, ComplianceSettings, Conserje, CustodyItem, ParkingLog, VideoRoom } from "../shared/types";
 import { MOCK_USERS } from "../shared/mock-data";
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
@@ -47,6 +47,24 @@ export class VisitEntity extends IndexedEntity<VisitLog> {
     legalConsent: false,
     status: 'active'
   };
+}
+export class RoomEntity extends IndexedEntity<VideoRoom> {
+  static readonly entityName = "video-room";
+  static readonly indexName = "video-rooms";
+  static readonly initialState: VideoRoom = {
+    id: "",
+    apartmentId: "",
+    residentId: "",
+    visitorName: "",
+    status: 'calling',
+    createdAt: 0,
+    expiresAt: 0
+  };
+  static async findActiveByApartment(env: any, apartmentId: string): Promise<VideoRoom | null> {
+    const { items } = await this.list(env, null, 50);
+    const now = Date.now();
+    return items.find(r => r.apartmentId === apartmentId && r.expiresAt > now && r.status !== 'completed' && r.status !== 'rejected') || null;
+  }
 }
 export class CustodyEntity extends IndexedEntity<CustodyItem> {
   static readonly entityName = "custody";

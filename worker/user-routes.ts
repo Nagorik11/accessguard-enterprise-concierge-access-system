@@ -1,14 +1,9 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { ResidentEntity, VisitEntity, SettingsEntity, ConserjeEntity, CustodyEntity, ParkingEntity } from "./entities";
+import { ResidentEntity, VisitEntity, SettingsEntity, ConserjeEntity, CustodyEntity, ParkingEntity, RoomEntity } from "./entities";
 import { ok, bad, notFound } from './core-utils';
 import { isValidRut } from "../shared/validators";
-import type { VisitRegistration, VisitLog, ComplianceSettings, CustodyItem, ParkingLog, Resident } from "../shared/types";
-/**
- * User routes for AccessGuard.
- * Standardizing logic to prevent "Worker routes failed to load" which usually
- * stems from top-level execution failures or missing dependencies in the worker bundle.
- */
+import type { VisitRegistration, VisitLog, ComplianceSettings, CustodyItem, ParkingLog, Resident, VideoRoom } from "../shared/types";
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   // AUTH
   app.post('/api/auth/login', async (c) => {
@@ -24,6 +19,63 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     } catch (e) {
       console.error("[AUTH ERROR]", e);
       return bad(c, "Error de autenticación interno");
+    }
+  });
+  // VIDEO SIGNALING
+  app.post('/api/video/rooms', async (c) => {
+    try {
+      const { apartmentId, visitorName } = await c.req.json();
+      const { items: residents } = await ResidentEntity.list(c.env, null, 1000);
+      const resident = residents.find(r => r.apartmentId === apartmentId);
+      if (!resident) return bad(c, 'Residente no encontrado');
+      const id = crypto.randomUUID();
+      const now = Date.now();
+      const newRoom: VideoRoom = {
+        id,
+        apartmentId,
+        residentId: resident.id,
+        visitorName,
+        status: 'calling',
+        createdAt: now,
+        expiresAt: now + (10 * 60 * 1000) // 10 minutes
+      };
+      console.log(`[MOCK WHATSAPP] To: ${resident.phone} - "Conserjería Digital: Videollamada de verificación para el visitante ${visitorName}. Acceda aquí: https://conserjeria.io/v/${id}"`);
+      const created = await RoomEntity.create(c.env, newRoom);
+      return ok(c, created);
+    } catch (e) {
+      return bad(c, "Error al crear sala de video");
+    }
+  });
+  app.get('/api/video/rooms/:id', async (c) => {
+    try {
+      const room = await new RoomEntity(c.env, c.req.param('id')).getState();
+      // Logic for mock auto-acceptance for demo purposes after 5 seconds
+      if (room.status === 'calling' && (Date.now() - room.createdAt > 5000)) {
+        const entity = new RoomEntity(c.env, room.id);
+        const updated = await entity.mutate(s => ({ ...s, status: 'connected' }));
+        return ok(c, updated);
+      }
+      return ok(c, room);
+    } catch (e) {
+      return notFound(c);
+    }
+  });
+  app.patch('/api/video/rooms/:id', async (c) => {
+    try {
+      const { status } = await c.req.json();
+      const entity = new RoomEntity(c.env, c.req.param('id'));
+      const updated = await entity.mutate(s => ({ ...s, status }));
+      return ok(c, updated);
+    } catch (e) {
+      return bad(c, "Error al actualizar sala");
+    }
+  });
+  app.get('/api/video/history', async (c) => {
+    try {
+      const page = await RoomEntity.list(c.env, null, 100);
+      return ok(c, { items: page.items });
+    } catch (e) {
+      return ok(c, { items: [] });
     }
   });
   // RESIDENTS CRUD
@@ -120,7 +172,9 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
         purpose: body.purpose,
         legalConsent: body.legalConsent,
         entryTime: Date.now(),
-        status: 'active'
+        status: 'active',
+        videoVerified: body.videoVerified || false,
+        verificationRoomId: body.verificationRoomId
       };
       const created = await VisitEntity.create(c.env, newVisit);
       return ok(c, created);
@@ -273,18 +327,21 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       const settings = await (new SettingsEntity(c.env, 'global-settings')).getState();
       const retentionDays = settings.retentionDays ?? 30;
       const threshold = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
-      const [vL, pL, iL] = await Promise.all([
-        VisitEntity.list(c.env, null, 1000), 
-        ParkingEntity.list(c.env, null, 1000), 
-        CustodyEntity.list(c.env, null, 1000)
+      const [vL, pL, iL, rL] = await Promise.all([
+        VisitEntity.list(c.env, null, 1000),
+        ParkingEntity.list(c.env, null, 1000),
+        CustodyEntity.list(c.env, null, 1000),
+        RoomEntity.list(c.env, null, 1000)
       ]);
       const vD = (vL.items || []).filter(v => v.status === 'completed' && (v.exitTime || v.entryTime) < threshold).map(v => v.id);
       const pD = (pL.items || []).filter(p => p.status === 'exited' && (p.exitTime || p.entryTime) < threshold).map(p => p.id);
       const iD = (iL.items || []).filter(i => i.status === 'delivered' && (i.deliveredAt || i.receivedAt) < threshold).map(i => i.id);
+      const rD = (rL.items || []).filter(r => r.createdAt < threshold).map(r => r.id);
       const [vd, pd, id] = await Promise.all([
         VisitEntity.deleteMany(c.env, vD),
         ParkingEntity.deleteMany(c.env, pD),
-        CustodyEntity.deleteMany(c.env, iD)
+        CustodyEntity.deleteMany(c.env, iD),
+        RoomEntity.deleteMany(c.env, rD)
       ]);
       return ok(c, { visitsDeleted: vd, parkingDeleted: pd, itemsDeleted: id, timestamp: Date.now() });
     } catch (e) {

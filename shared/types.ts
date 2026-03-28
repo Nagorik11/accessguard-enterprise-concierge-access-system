@@ -39,6 +39,16 @@ export const VISIT_PURPOSES = [
   "Otros"
 ] as const;
 export type VisitPurpose = typeof VISIT_PURPOSES[number];
+export type VideoCallStatus = 'calling' | 'connected' | 'rejected' | 'missed' | 'completed';
+export interface VideoRoom {
+  id: string;
+  apartmentId: string;
+  residentId: string;
+  visitorName: string;
+  status: VideoCallStatus;
+  createdAt: number;
+  expiresAt: number;
+}
 export interface VisitLog {
   id: string;
   visitorName: string;
@@ -49,6 +59,8 @@ export interface VisitLog {
   purpose: string;
   legalConsent: boolean;
   status: 'active' | 'completed' | 'denied';
+  videoVerified?: boolean;
+  verificationRoomId?: string;
 }
 export interface VisitRegistration {
   visitorName: string;
@@ -56,6 +68,8 @@ export interface VisitRegistration {
   apartmentId: string;
   purpose: string;
   legalConsent: boolean;
+  videoVerified?: boolean;
+  verificationRoomId?: string;
 }
 export type CustodyStatus = 'received' | 'in_custody' | 'delivered';
 export type RecipientType = 'resident' | 'visitor';

@@ -3,10 +3,10 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell } from 'recharts';
 import { api } from '@/lib/api-client';
-import type { VisitLog, CustodyItem, ParkingLog } from '@shared/types';
-import { Loader2, TrendingUp, Users, Package, Clock, Calendar, ShieldAlert } from 'lucide-react';
+import type { VisitLog, CustodyItem, ParkingLog, VideoRoom } from '@shared/types';
+import { Loader2, TrendingUp, Users, Package, Clock, Calendar, ShieldAlert, Video, ShieldCheck } from 'lucide-react';
 import { format, startOfDay, subDays, eachDayOfInterval, subMonths, startOfMonth, eachMonthOfInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
@@ -14,19 +14,22 @@ export function AnalyticsPage() {
   const [visits, setVisits] = useState<VisitLog[]>([]);
   const [custody, setCustody] = useState<CustodyItem[]>([]);
   const [parking, setParking] = useState<ParkingLog[]>([]);
+  const [calls, setCalls] = useState<VideoRoom[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
-        const [vRes, cRes, pRes] = await Promise.all([
+        const [vRes, cRes, pRes, rRes] = await Promise.all([
           api<{ items: VisitLog[] }>('/api/visits'),
           api<{ items: CustodyItem[] }>('/api/custody'),
-          api<{ items: ParkingLog[] }>('/api/parking')
+          api<{ items: ParkingLog[] }>('/api/parking'),
+          api<{ items: VideoRoom[] }>('/api/video/history')
         ]);
         setVisits(vRes.items || []);
         setCustody(cRes.items || []);
         setParking(pRes.items || []);
+        setCalls(rRes.items || []);
       } catch (err) {
         console.error("Analytics fetch failed", err);
       } finally {
@@ -35,11 +38,14 @@ export function AnalyticsPage() {
     }
     loadData();
   }, []);
+  const videoVerifiedVisits = visits.filter(v => v.videoVerified).length;
+  const verificationRate = visits.length > 0 ? Math.round((videoVerifiedVisits / visits.length) * 100) : 0;
   const last7Days = eachDayOfInterval({ start: subDays(new Date(), 6), end: new Date() });
   const timelineData = last7Days.map(date => {
     const dayStr = format(date, 'EEE', { locale: es });
     const count = visits.filter(v => v.entryTime && startOfDay(new Date(v.entryTime)).getTime() === startOfDay(date).getTime()).length;
-    return { name: dayStr, visitas: count };
+    const callCount = calls.filter(c => c.createdAt && startOfDay(new Date(c.createdAt)).getTime() === startOfDay(date).getTime()).length;
+    return { name: dayStr, visitas: count, llamadas: callCount };
   });
   const last6Months = eachMonthOfInterval({ start: subMonths(new Date(), 5), end: new Date() });
   const monthlyData = last6Months.map(date => {
@@ -77,9 +83,9 @@ export function AnalyticsPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[
             { label: "Visitas Semestre", val: visits.length, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-            { label: "Ocupación Parking", val: parking.filter(p => p.status === 'parked').length, icon: Clock, color: "text-orange-600", bg: "bg-orange-50" },
-            { label: "Items en Guardia", val: custody.filter(c => c.status === 'in_custody').length, icon: Package, color: "text-indigo-600", bg: "bg-indigo-50" },
-            { label: "Tasa Cumplimiento", val: "100%", icon: TrendingUp, color: "text-green-600", bg: "bg-green-50" }
+            { label: "Verificación Video", val: `${verificationRate}%`, icon: Video, color: "text-indigo-600", bg: "bg-indigo-50" },
+            { label: "Llamadas de Turno", val: calls.length, icon: ShieldCheck, color: "text-green-600", bg: "bg-green-50" },
+            { label: "Items en Guardia", val: custody.filter(c => c.status === 'in_custody').length, icon: Package, color: "text-orange-600", bg: "bg-orange-50" }
           ].map((stat, i) => (
             <Card key={i} className="border-none shadow-sm bg-white overflow-hidden">
               <CardContent className="p-6 flex items-center justify-between">
@@ -118,20 +124,21 @@ export function AnalyticsPage() {
           </Card>
           <Card className="p-6 border-none shadow-sm bg-white">
             <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-lg font-black">Distribución por Unidad</CardTitle>
-              <CardDescription className="text-xs font-medium">Unidades con mayor flujo de accesos registrados.</CardDescription>
+              <CardTitle className="text-lg font-black">Llamadas vs Visitas (Semana)</CardTitle>
+              <CardDescription className="text-xs font-medium">Uso del protocolo de video-verificación.</CardDescription>
             </CardHeader>
             <div className="h-[300px] w-full mt-6">
               {loading ? (
                 <Skeleton className="h-full w-full rounded-lg" />
-              ) : topAptsData.length === 0 ? renderEmpty("Sin actividad en bitácora") : (
+              ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topAptsData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} width={90} />
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
-                    <Bar dataKey="value" fill="#8b5cf6" radius={[0, 6, 6, 0]} barSize={30} />
+                  <BarChart data={timelineData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontWeight: 'bold' }} />
+                    <Bar dataKey="visitas" fill="#cbd5e1" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar dataKey="llamadas" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
               )}

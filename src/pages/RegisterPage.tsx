@@ -8,13 +8,15 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { isValidRut, formatRut } from '@/lib/validators';
 import { toast } from 'sonner';
-import { ShieldAlert, Send, CheckCircle2, UserPlus, FileText, Printer, ArrowLeft, Car, Loader2 } from 'lucide-react';
+import { ShieldAlert, Send, CheckCircle2, UserPlus, Video, Printer, ShieldCheck, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { api } from '@/lib/api-client';
+import { VideoCallModal } from '@/components/VideoCallModal';
 import type { Resident, VisitLog } from '@shared/types';
 import { VISIT_PURPOSES } from '@shared/types';
 const formSchema = z.object({
@@ -28,12 +30,15 @@ const formSchema = z.object({
   legalConsent: z.boolean().refine((val) => val === true, {
     message: "El consentimiento legal es obligatorio",
   }),
+  videoVerified: z.boolean().default(false),
+  verificationRoomId: z.string().optional(),
 });
 export function RegisterPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [residents, setResidents] = useState<Resident[]>([]);
   const [isLoadingResidents, setIsLoadingResidents] = useState(true);
   const [submittedData, setSubmittedData] = useState<VisitLog | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -43,9 +48,13 @@ export function RegisterPage() {
       purpose: "",
       otherPurpose: "",
       legalConsent: false,
+      videoVerified: false,
     },
   });
   const selectedPurpose = form.watch("purpose");
+  const apartmentId = form.watch("apartmentId");
+  const visitorName = form.watch("visitorName");
+  const videoVerified = form.watch("videoVerified");
   useEffect(() => {
     async function loadResidents() {
       try {
@@ -83,6 +92,11 @@ export function RegisterPage() {
     const formatted = formatRut(e.target.value);
     form.setValue("visitorRut", formatted, { shouldValidate: true });
   };
+  const handleVideoVerified = (roomId: string) => {
+    form.setValue("videoVerified", true);
+    form.setValue("verificationRoomId", roomId);
+    toast.success("Verificación de video confirmada");
+  };
   if (isSuccess && submittedData) {
     return (
       <AppLayout container>
@@ -106,6 +120,15 @@ export function RegisterPage() {
                     <p className="text-2xl font-black text-blue-600">Unidad {submittedData.apartmentId}</p>
                   </div>
                 </div>
+                {submittedData.videoVerified && (
+                  <div className="bg-slate-900 p-4 rounded-xl flex items-center gap-4 text-white border-l-4 border-blue-500">
+                    <Video className="h-6 w-6 text-blue-400" />
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 leading-none">Identidad Confirmada</p>
+                      <p className="text-xs font-medium">Verificación por Videollamada</p>
+                    </div>
+                  </div>
+                )}
                 <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
                   <div className="flex items-center gap-2 text-blue-700 mb-2">
                     <Send className="h-4 w-4" />
@@ -222,21 +245,31 @@ export function RegisterPage() {
                     )}
                   />
                 </div>
-                {selectedPurpose === "Otros" && (
-                  <FormField
-                    control={form.control}
-                    name="otherPurpose"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-bold">Especifique el Motivo</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Descripción breve..." className="h-12" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                <div className="flex items-center justify-between p-6 bg-slate-900 rounded-2xl border-b-4 border-blue-600 shadow-xl overflow-hidden relative">
+                  <div className="absolute right-0 top-0 h-full w-1/3 bg-blue-600/10 skew-x-12 translate-x-10" />
+                  <div className="relative space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Video className="h-4 w-4 text-blue-400" />
+                      <p className="text-[10px] font-black uppercase text-blue-400 tracking-[0.2em]">Verificación Biométrica</p>
+                    </div>
+                    <h4 className="text-white font-black text-lg">Videollamada con Residente</h4>
+                    <p className="text-xs text-slate-400 font-medium">Confirme la identidad del visitante en tiempo real.</p>
+                  </div>
+                  {videoVerified ? (
+                    <Badge className="bg-green-500 text-white font-black px-4 py-2 text-sm rounded-xl">
+                      <CheckCircle2 className="h-4 w-4 mr-2" /> VERIFICADO
+                    </Badge>
+                  ) : (
+                    <Button 
+                      type="button" 
+                      onClick={() => setIsVideoModalOpen(true)}
+                      disabled={!apartmentId || !visitorName}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-black h-12 px-6 relative z-10"
+                    >
+                      Iniciar Llamada
+                    </Button>
+                  )}
+                </div>
                 <div className="p-6 bg-slate-50 rounded-2xl border-2 border-slate-100 flex flex-col gap-4">
                   <div className="flex items-start gap-4">
                     <ShieldAlert className="h-8 w-8 text-blue-600 flex-shrink-0" />
@@ -273,6 +306,13 @@ export function RegisterPage() {
           </Form>
         </Card>
       </div>
+      <VideoCallModal 
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        onVerified={handleVideoVerified}
+        apartmentId={apartmentId}
+        visitorName={visitorName}
+      />
     </AppLayout>
   );
 }

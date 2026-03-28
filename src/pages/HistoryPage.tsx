@@ -5,8 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Download, Filter, FileText, Loader2, ShieldCheck, Trash2, Clock } from 'lucide-react';
+import { Search, Download, Filter, FileText, Loader2, ShieldCheck, Trash2, Clock, Video } from 'lucide-react';
 import { api } from '@/lib/api-client';
 import type { VisitLog } from '@shared/types';
 import { format } from 'date-fns';
@@ -111,7 +112,7 @@ export function HistoryPage() {
                     <TableHead className="w-[180px] pl-6 h-12">Fecha y Hora</TableHead>
                     <TableHead>Identificación</TableHead>
                     <TableHead>Unidad</TableHead>
-                    <TableHead>Protocolo</TableHead>
+                    <TableHead>Verificación</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right pr-6">Acción</TableHead>
                   </TableRow>
@@ -136,13 +137,27 @@ export function HistoryPage() {
                         </TableCell>
                         <TableCell className="font-black text-blue-700">Unidad {v.apartmentId}</TableCell>
                         <TableCell>
-                          {v.legalConsent ? (
-                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-none h-6 font-black text-[9px]">
-                              <ShieldCheck className="h-3 w-3 mr-1" /> OK
-                            </Badge>
-                          ) : (
-                            <span className="text-slate-300 text-[10px] font-bold">—</span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {v.legalConsent && (
+                              <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-none h-6 font-black text-[9px]">
+                                <ShieldCheck className="h-3 w-3 mr-1" /> LEGAL
+                              </Badge>
+                            )}
+                            {v.videoVerified && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-blue-400 shadow-lg">
+                                      <Video className="h-3 w-3" />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-slate-900 text-white border-slate-800">
+                                    <p className="text-xs font-bold">Identidad verificada por videollamada</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Badge

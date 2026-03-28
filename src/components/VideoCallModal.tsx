@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,23 +21,15 @@ export function VideoCallModal({ isOpen, onClose, onVerified, apartmentId, visit
   const [timer, setTimer] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pollIntervalRef = useRef<number | null>(null);
-  const currentRoomIdRef = useRef<string>('');
-
-  const stopCall = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
+  useEffect(() => {
+    if (isOpen) {
+      startCall();
+    } else {
+      stopCall();
     }
-    if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
-    currentRoomIdRef.current = '';
-    setRoom(null);
-    setTimer(0);
-  }, []);
-
-  const startCall = useCallback(async () => {
+    return () => stopCall();
+  }, [isOpen]);
+  const startCall = async () => {
     try {
       const userStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       setStream(userStream);
@@ -48,21 +39,17 @@ export function VideoCallModal({ isOpen, onClose, onVerified, apartmentId, visit
         body: JSON.stringify({ apartmentId, visitorName })
       });
       setRoom(newRoom);
-      currentRoomIdRef.current = newRoom.id;
       // Signaling Polling
-      const currentStopCall = stopCall;
-      const currentOnClose = onClose;
       pollIntervalRef.current = window.setInterval(async () => {
         try {
-          if (!currentRoomIdRef.current) return;
-          const updatedRoom = await api<VideoRoom>(`/api/video/rooms/${currentRoomIdRef.current}`);
+          const updatedRoom = await api<VideoRoom>(`/api/video/rooms/${newRoom.id}`);
           setRoom(updatedRoom);
           if (updatedRoom.status === 'connected') {
             setTimer(prev => prev + 1);
           }
           if (updatedRoom.status === 'rejected' || updatedRoom.status === 'completed') {
-            currentStopCall();
-            currentOnClose();
+            stopCall();
+            onClose();
             toast.error("La llamada fue finalizada por el residente");
           }
         } catch (e) {
@@ -73,32 +60,34 @@ export function VideoCallModal({ isOpen, onClose, onVerified, apartmentId, visit
       toast.error("Error al acceder a cámara/micrófono");
       onClose();
     }
-  }, [apartmentId, visitorName, onClose, stopCall]);
-
-  useEffect(() => {
-    if (isOpen) {
-      startCall();
-    } else {
-      stopCall();
+  };
+  const stopCall = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
     }
-    return () => stopCall();
-  }, [isOpen, startCall, stopCall]);
-  const handleVerify = useCallback(async () => {
-    const currentRoom = room;
-    if (!currentRoom) return;
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    setRoom(null);
+    setTimer(0);
+  };
+  const handleVerify = async () => {
+    if (!room) return;
     try {
-      await api(`/api/video/rooms/${currentRoom.id}`, {
+      await api(`/api/video/rooms/${room.id}`, {
         method: 'PATCH',
         body: JSON.stringify({ status: 'completed' })
       });
-      onVerified(currentRoom.id);
+      onVerified(room.id);
       stopCall();
       onClose();
       toast.success("Identidad Verificada Digitalmente");
     } catch (e) {
       toast.error("Error al finalizar verificación");
     }
-  }, [onVerified, stopCall, onClose]);
+  };
   const formatTimer = (s: number) => {
     const mins = Math.floor(s / 60);
     const secs = s % 60;
