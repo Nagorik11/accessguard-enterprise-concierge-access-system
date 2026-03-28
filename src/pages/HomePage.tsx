@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Users, Clock, ShieldCheck, Bell } from 'lucide-react';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 const MOCK_LOGS = [
   { id: '1', visitor: 'Juan Pérez', rut: '12.345.678-9', apt: '402-A', time: new Date(), status: 'active' },
   { id: '2', visitor: 'Maria Garcia', rut: '15.221.334-K', apt: '101-B', time: new Date(Date.now() - 3600000), status: 'completed' },
@@ -84,8 +85,8 @@ export function HomePage() {
                     <TableCell className="text-slate-600">{log.apt}</TableCell>
                     <TableCell className="text-slate-500 text-xs">{format(log.time, 'HH:mm')}</TableCell>
                     <TableCell>
-                      <Badge 
-                        variant="secondary" 
+                      <Badge
+                        variant="secondary"
                         className={cn(
                           "capitalize text-[10px] px-2 py-0",
                           log.status === 'active' && "bg-green-100 text-green-700 hover:bg-green-100",

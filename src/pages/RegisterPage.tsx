@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,9 +11,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { isValidRut, formatRut } from '@/lib/validators';
 import { toast } from 'sonner';
-import { ShieldAlert, Send, CheckCircle2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldAlert, Send, CheckCircle2, UserPlus } from 'lucide-react';
+import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { api } from '@/lib/api-client';
+import type { Resident, VisitLog } from '@shared/types';
 const formSchema = z.object({
   visitorName: z.string().min(3, "Full name is required"),
   visitorRut: z.string().refine((val) => isValidRut(val), {
@@ -27,6 +29,9 @@ const formSchema = z.object({
 });
 export function RegisterPage() {
   const [isSuccess, setIsSuccess] = useState(false);
+  const [residents, setResidents] = useState<Resident[]>([]);
+  const [isLoadingResidents, setIsLoadingResidents] = useState(true);
+  const [submittedData, setSubmittedData] = useState<VisitLog | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -37,29 +42,43 @@ export function RegisterPage() {
       legalConsent: false,
     },
   });
+  useEffect(() => {
+    async function loadResidents() {
+      try {
+        const response = await api<{ items: Resident[] }>('/api/residents');
+        setResidents(response.items);
+      } catch (err) {
+        console.error("Failed to load residents", err);
+        toast.error("Failed to load resident directory");
+      } finally {
+        setIsLoadingResidents(false);
+      }
+    }
+    loadResidents();
+  }, []);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log("Submitting registration:", values);
+      const result = await api<VisitLog>('/api/visits', {
+        method: 'POST',
+        body: JSON.stringify(values)
+      });
+      setSubmittedData(result);
       setIsSuccess(true);
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 }
       });
-      toast.success("Visit registered successfully", {
-        description: "WhatsApp notification sent to resident."
-      });
+      toast.success("Visit registered successfully");
     } catch (error) {
-      toast.error("Registration failed");
+      toast.error(error instanceof Error ? error.message : "Registration failed");
     }
   };
   const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatRut(e.target.value);
     form.setValue("visitorRut", formatted, { shouldValidate: true });
   };
-  if (isSuccess) {
+  if (isSuccess && submittedData) {
     return (
       <AppLayout container>
         <div className="max-w-md mx-auto">
@@ -75,7 +94,7 @@ export function RegisterPage() {
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl font-bold">Access Granted</h1>
-              <p className="text-slate-500">Visitor <b>{form.getValues('visitorName')}</b> has been cleared for entry to <b>Apt {form.getValues('apartmentId')}</b>.</p>
+              <p className="text-slate-500">Visitor <b>{submittedData.visitorName}</b> has been cleared for entry to <b>Apt {submittedData.apartmentId}</b>.</p>
             </div>
             <Card className="bg-slate-900 text-white text-left border-none shadow-xl overflow-hidden">
               <div className="bg-green-600 px-4 py-2 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
@@ -84,11 +103,11 @@ export function RegisterPage() {
               <CardContent className="p-4 space-y-2">
                 <p className="text-xs text-slate-300">Resident notification preview:</p>
                 <div className="bg-slate-800 rounded p-3 text-sm italic border-l-2 border-green-500">
-                  "Hola Resident, AccessGuard informa: El visitante {form.getValues('visitorName')} con RUT {form.getValues('visitorRut')} está ingresando a su depto {form.getValues('apartmentId')}. Motivo: {form.getValues('purpose')}."
+                  "Hola Resident, AccessGuard informa: El visitante {submittedData.visitorName} con RUT {submittedData.visitorRut} está ingresando a su depto {submittedData.apartmentId}. Motivo: {submittedData.purpose}."
                 </div>
               </CardContent>
             </Card>
-            <Button variant="outline" className="w-full" onClick={() => { setIsSuccess(false); form.reset(); }}>
+            <Button variant="outline" className="w-full" onClick={() => { setIsSuccess(false); form.reset(); setSubmittedData(null); }}>
               Register Another Visit
             </Button>
           </motion.div>
@@ -133,9 +152,9 @@ export function RegisterPage() {
                       <FormItem>
                         <FormLabel>RUT (ID Number)</FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="12.345.678-9" 
-                            {...field} 
+                          <Input
+                            placeholder="12.345.678-9"
+                            {...field}
                             onChange={handleRutChange}
                           />
                         </FormControl>
@@ -157,14 +176,15 @@ export function RegisterPage() {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select unit" />
+                              <SelectValue placeholder={isLoadingResidents ? "Loading units..." : "Select unit"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="101-A">101-A (Resident A)</SelectItem>
-                            <SelectItem value="202-B">202-B (Resident B)</SelectItem>
-                            <SelectItem value="405-C">405-C (Resident C)</SelectItem>
-                            <SelectItem value="801-A">801-A (Resident D)</SelectItem>
+                            {residents.map((r) => (
+                              <SelectItem key={r.id} value={r.apartmentId}>
+                                {r.apartmentId} ({r.fullName})
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -191,7 +211,7 @@ export function RegisterPage() {
                     <div className="space-y-1">
                       <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Legal Disclosure</p>
                       <p className="text-xs text-slate-500 leading-relaxed">
-                        By registering this visit, you confirm the visitor has been informed about our data privacy policy. 
+                        By registering this visit, you confirm the visitor has been informed about our data privacy policy.
                         Data is stored for security purposes for 30 days and then anonymized.
                       </p>
                     </div>

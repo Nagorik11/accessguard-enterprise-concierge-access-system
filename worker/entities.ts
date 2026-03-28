@@ -1,41 +1,36 @@
-/**
- * Minimal real-world demo: One Durable Object instance per entity (User, ChatBoard), with Indexes for listing.
- */
 import { IndexedEntity } from "./core-utils";
-import type { User, Chat, ChatMessage } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS } from "@shared/mock-data";
-
-// USER ENTITY: one DO instance per user
+import type { User, Resident, VisitLog } from "@shared/types";
+import { MOCK_USERS } from "@shared/mock-data";
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
   static readonly indexName = "users";
   static readonly initialState: User = { id: "", name: "" };
   static seedData = MOCK_USERS;
 }
-
-// CHAT BOARD ENTITY: one DO instance per chat board, stores its own messages
-export type ChatBoardState = Chat & { messages: ChatMessage[] };
-
-const SEED_CHAT_BOARDS: ChatBoardState[] = MOCK_CHATS.map(c => ({
-  ...c,
-  messages: MOCK_CHAT_MESSAGES.filter(m => m.chatId === c.id),
-}));
-
-export class ChatBoardEntity extends IndexedEntity<ChatBoardState> {
-  static readonly entityName = "chat";
-  static readonly indexName = "chats";
-  static readonly initialState: ChatBoardState = { id: "", title: "", messages: [] };
-  static seedData = SEED_CHAT_BOARDS;
-
-  async listMessages(): Promise<ChatMessage[]> {
-    const { messages } = await this.getState();
-    return messages;
-  }
-
-  async sendMessage(userId: string, text: string): Promise<ChatMessage> {
-    const msg: ChatMessage = { id: crypto.randomUUID(), chatId: this.id, userId, text, ts: Date.now() };
-    await this.mutate(s => ({ ...s, messages: [...s.messages, msg] }));
-    return msg;
-  }
+const SEED_RESIDENTS: Resident[] = [
+  { id: "r1", fullName: "Roberto Muñoz", apartmentId: "101-A", phone: "+56912345678", whatsappOptIn: true, createdAt: Date.now() },
+  { id: "r2", fullName: "Ana Maria Silva", apartmentId: "202-B", phone: "+56987654321", whatsappOptIn: true, createdAt: Date.now() },
+  { id: "r3", fullName: "Carlos Valdivia", apartmentId: "405-C", phone: "+56955544433", whatsappOptIn: false, createdAt: Date.now() },
+  { id: "r4", fullName: "Elena Gomez", apartmentId: "801-A", phone: "+56911122233", whatsappOptIn: true, createdAt: Date.now() },
+  { id: "r5", fullName: "Pedro Pascal", apartmentId: "502-D", phone: "+56999988877", whatsappOptIn: true, createdAt: Date.now() },
+];
+export class ResidentEntity extends IndexedEntity<Resident> {
+  static readonly entityName = "resident";
+  static readonly indexName = "residents";
+  static readonly initialState: Resident = { id: "", fullName: "", apartmentId: "", phone: "", whatsappOptIn: false, createdAt: 0 };
+  static seedData = SEED_RESIDENTS;
 }
-
+export class VisitEntity extends IndexedEntity<VisitLog> {
+  static readonly entityName = "visit";
+  static readonly indexName = "visits";
+  static readonly initialState: VisitLog = { 
+    id: "", 
+    visitorName: "", 
+    visitorRut: "", 
+    apartmentId: "", 
+    entryTime: 0, 
+    purpose: "", 
+    legalConsent: false, 
+    status: 'active' 
+  };
+}
