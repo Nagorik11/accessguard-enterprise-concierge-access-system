@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { isValidRut, formatRut } from '@/lib/validators';
 import { toast } from 'sonner';
-import { ShieldAlert, Send, CheckCircle2, UserPlus, FileText, Printer, ArrowLeft } from 'lucide-react';
+import { ShieldAlert, Send, CheckCircle2, UserPlus, FileText, Printer, ArrowLeft, Car } from 'lucide-react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { api } from '@/lib/api-client';
@@ -136,7 +136,7 @@ export function RegisterPage() {
                 </Button>
               </CardFooter>
             </Card>
-            <button 
+            <button
               onClick={() => { setIsSuccess(false); form.reset(); setSubmittedData(null); }}
               className="w-full flex items-center justify-center gap-2 text-slate-400 hover:text-slate-600 text-xs transition-colors"
             >
@@ -215,7 +215,14 @@ export function RegisterPage() {
                           <SelectContent>
                             {residents.map((r) => (
                               <SelectItem key={r.id} value={r.apartmentId}>
-                                {r.apartmentId} ({r.fullName})
+                                <div className="flex flex-col items-start gap-0.5">
+                                  <span>{r.apartmentId} ({r.fullName})</span>
+                                  {r.vehiclePlate && (
+                                    <span className="text-[9px] text-slate-400 flex items-center gap-1">
+                                      <Car className="h-2 w-2" /> Patente: {r.vehiclePlate}
+                                    </span>
+                                  )}
+                                </div>
                               </SelectItem>
                             ))}
                           </SelectContent>

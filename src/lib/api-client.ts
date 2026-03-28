@@ -7,13 +7,33 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
-  const res = await fetch(path, {
-    ...init,
-    headers
-  })
-  const json = (await res.json()) as ApiResponse<T>
-  if (!res.ok || !json.success || json.data === undefined) {
-    throw new Error(json.error || 'Request failed')
+  try {
+    const res = await fetch(path, {
+      ...init,
+      headers
+    });
+    let json: ApiResponse<T>;
+    try {
+      json = (await res.json()) as ApiResponse<T>;
+    } catch (parseError) {
+      console.warn(`[API] Path ${path} returned malformed JSON`);
+      throw new Error(`Error del servidor (${res.status}): Respuesta no válida.`);
+    }
+    if (!res.ok || !json.success) {
+      const errMsg = json.error || `Error ${res.status}: ${res.statusText}`;
+      console.warn(`[API FAIL] ${path}:`, errMsg);
+      throw new Error(errMsg);
+    }
+    if (json.data === undefined) {
+      // Some endpoints might return success but no data (e.g. 204 behavior simulation)
+      return {} as T;
+    }
+    return json.data;
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error(`[API ERROR] ${path}:`, err.message);
+      throw err;
+    }
+    throw new Error('Error de conexión desconocido.');
   }
-  return json.data
 }

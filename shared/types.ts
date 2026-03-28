@@ -24,6 +24,8 @@ export interface Resident {
   fullName: string;
   apartmentId: string;
   phone: string;
+  rut?: string;
+  vehiclePlate?: string;
   whatsappOptIn: boolean;
   createdAt: number;
 }
