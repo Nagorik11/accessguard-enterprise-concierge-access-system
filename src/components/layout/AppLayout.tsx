@@ -1,6 +1,6 @@
 import React from "react";
 import { SidebarProvider, SidebarInset, SidebarTrigger, Sidebar, SidebarHeader, SidebarContent, SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { LayoutDashboard, UserPlus, Users, ShieldCheck, Building2, LogOut, User, Package } from "lucide-react";
+import { LayoutDashboard, UserPlus, Users, ShieldCheck, Building2, LogOut, User, Package, History, BarChart3 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ export function AppLayout({ children, container = false, className, contentClass
     logout();
     navigate('/login');
   };
+  const isAdmin = user?.role === 'admin';
   return (
     <SidebarProvider defaultOpen={true}>
       <Sidebar className="border-r border-slate-800 bg-slate-900 text-slate-100">
@@ -58,6 +59,14 @@ export function AppLayout({ children, container = false, className, contentClass
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === "/history"} className="hover:bg-slate-800 transition-colors">
+                  <Link to="/history" className="flex items-center gap-3 px-3 py-2">
+                    <History className="h-4 w-4" />
+                    <span className="font-medium">Historial Accesos</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={location.pathname === "/residents"} className="hover:bg-slate-800 transition-colors">
                   <Link to="/residents" className="flex items-center gap-3 px-3 py-2">
                     <Users className="h-4 w-4" />
@@ -65,14 +74,26 @@ export function AppLayout({ children, container = false, className, contentClass
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname === "/compliance"} className="hover:bg-slate-800 transition-colors">
-                  <Link to="/compliance" className="flex items-center gap-3 px-3 py-2">
-                    <Building2 className="h-4 w-4" />
-                    <span className="font-medium">Cumplimiento</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {isAdmin && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/analytics"} className="hover:bg-slate-800 transition-colors">
+                      <Link to="/analytics" className="flex items-center gap-3 px-3 py-2">
+                        <BarChart3 className="h-4 w-4" />
+                        <span className="font-medium">Estadísticas</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={location.pathname === "/compliance"} className="hover:bg-slate-800 transition-colors">
+                      <Link to="/compliance" className="flex items-center gap-3 px-3 py-2">
+                        <Building2 className="h-4 w-4" />
+                        <span className="font-medium">Cumplimiento</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
             </SidebarMenu>
           </SidebarGroup>
         </SidebarContent>
@@ -86,7 +107,7 @@ export function AppLayout({ children, container = false, className, contentClass
               <p className="text-[10px] text-slate-500 uppercase tracking-tighter">{user?.role === 'admin' ? 'Administrador' : 'Conserje'}</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition-colors"
           >
@@ -104,6 +125,9 @@ export function AppLayout({ children, container = false, className, contentClass
             {location.pathname === "/register" && "Registro de Visitantes"}
             {location.pathname === "/residents" && "Directorio de Residentes"}
             {location.pathname === "/compliance" && "Legal y Cumplimiento"}
+            {location.pathname === "/custody" && "Paquetería y Custodia"}
+            {location.pathname === "/analytics" && "Estadísticas y Reportes"}
+            {location.pathname === "/history" && "Historial de Accesos"}
           </h2>
         </header>
         <main className="flex-1 overflow-auto">

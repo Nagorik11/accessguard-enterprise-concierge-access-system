@@ -1,21 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Clock, ShieldCheck, Bell, LogOut, Loader2, Package, CheckCircle2 } from 'lucide-react';
+import { Users, Clock, ShieldCheck, Bell, LogOut, Loader2, Package, CheckCircle2, UserPlus, FileSearch } from 'lucide-react';
 import { format, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api-client';
 import type { VisitLog, CustodyItem } from '@shared/types';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 export function HomePage() {
   const [visits, setVisits] = useState<VisitLog[]>([]);
   const [custodyItems, setCustodyItems] = useState<CustodyItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [visitsRes, custodyRes] = await Promise.all([
@@ -25,15 +26,15 @@ export function HomePage() {
       setVisits(visitsRes.items || []);
       setCustodyItems(custodyRes.items || []);
     } catch (err) {
-      console.error(err);
+      console.error("Dashboard fetch failed", err);
       toast.error("Error al cargar datos del panel");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
   const handleCheckOut = async (id: string) => {
     try {
       await api(`/api/visits/${id}/exit`, { method: 'POST' });
@@ -46,7 +47,6 @@ export function HomePage() {
   const visitsToday = visits.filter(v => isToday(new Date(v.entryTime))).length;
   const currentlyInside = visits.filter(v => v.status === 'active').length;
   const inCustody = custodyItems.filter(i => i.status === 'in_custody').length;
-  const deliveredToday = custodyItems.filter(i => i.status === 'delivered' && i.deliveredAt && isToday(new Date(i.deliveredAt))).length;
   return (
     <AppLayout container>
       <div className="space-y-8">
@@ -60,7 +60,60 @@ export function HomePage() {
             Actualizar
           </Button>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link to="/register">
+            <Card className="hover:border-blue-500 transition-colors cursor-pointer group bg-white shadow-sm">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <UserPlus className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Nueva Visita</p>
+                  <p className="text-xs text-slate-500">Registrar ingreso</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/custody">
+            <Card className="hover:border-orange-500 transition-colors cursor-pointer group bg-white shadow-sm">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                  <Package className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Recibir Item</p>
+                  <p className="text-xs text-slate-500">Nueva encomienda</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/history">
+            <Card className="hover:border-slate-500 transition-colors cursor-pointer group bg-white shadow-sm">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-600 group-hover:bg-slate-600 group-hover:text-white transition-colors">
+                  <FileSearch className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Ver Bitácora</p>
+                  <p className="text-xs text-slate-500">Consultar registros</p>
+                </div>
+              </CardContent>
+            </Link>
+          </Link>
+          <Card className="bg-slate-900 border-none shadow-sm">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400">
+                <ShieldCheck className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-bold text-white">Sistema Activo</p>
+                <p className="text-xs text-slate-400">Todo en orden</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="shadow-sm border-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xs font-medium text-slate-500 uppercase">Visitas Hoy</CardTitle>
@@ -90,29 +143,11 @@ export function HomePage() {
           </Card>
           <Card className="shadow-sm border-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-slate-500 uppercase">Paquetes Entregados</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{deliveredToday}</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-none bg-white">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xs font-medium text-slate-500 uppercase">WhatsApp</CardTitle>
               <Bell className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">Activo</div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm border-none bg-white">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-slate-500 uppercase">Cumplimiento</CardTitle>
-              <ShieldCheck className="h-4 w-4 text-slate-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">100%</div>
             </CardContent>
           </Card>
         </div>

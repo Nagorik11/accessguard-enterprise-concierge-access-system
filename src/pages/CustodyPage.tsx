@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
@@ -93,7 +93,7 @@ export function CustodyPage() {
       toast.error("Error al eliminar");
     }
   };
-  const filteredItems = items.filter(i => 
+  const filteredItems = items.filter(i =>
     i.apartmentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
     i.itemDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
     i.recipientName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -125,6 +125,7 @@ export function CustodyPage() {
               <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle>Nueva Recepción de Custodia</DialogTitle>
+                  <DialogDescription>Ingrese los detalles del paquete o item para su custodia en conserjería.</DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -212,9 +213,9 @@ export function CustodyPage() {
                         </FormItem>
                       )}
                     />
-                    <DialogFooter className="pt-4">
-                      <Button variant="ghost" type="button" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                      <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Guardar Registro</Button>
+                    <DialogFooter className="pt-4 gap-2">
+                      <Button variant="ghost" type="button" onClick={() => setIsDialogOpen(false)} className="flex-1">Cancelar</Button>
+                      <Button type="submit" className="bg-blue-600 hover:bg-blue-700 flex-1">Guardar Registro</Button>
                     </DialogFooter>
                   </form>
                 </Form>
@@ -230,34 +231,35 @@ export function CustodyPage() {
             </CardTitle>
             <CardDescription>Lista de paquetes pendientes de retiro y entregados.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {loading ? (
-              <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-slate-300" /></div>
+              <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-slate-300" /></div>
             ) : filteredItems.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 italic">No hay paquetes en custodia actualmente.</div>
+              <div className="text-center py-20 text-slate-400 italic">No hay paquetes en custodia actualmente.</div>
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-slate-100 uppercase text-[10px]">
-                    <TableHead>Fecha</TableHead>
+                  <TableRow className="border-slate-100 uppercase text-[10px] hover:bg-transparent">
+                    <TableHead className="pl-6">Fecha</TableHead>
                     <TableHead>Depto</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead>Destinatario</TableHead>
                     <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead className="text-right pr-6">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <AnimatePresence mode="popLayout">
+                  <AnimatePresence mode="popLayout" initial={false}>
                     {filteredItems.map((item) => (
                       <motion.tr
                         key={item.id}
+                        layout
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="border-slate-50 hover:bg-slate-50/50 transition-colors"
                       >
-                        <TableCell className="text-xs text-slate-500">
+                        <TableCell className="text-xs text-slate-500 pl-6 py-4">
                           {format(item.receivedAt, 'dd/MM HH:mm', { locale: es })}
                         </TableCell>
                         <TableCell className="font-bold text-blue-700">{item.apartmentId}</TableCell>
@@ -279,7 +281,7 @@ export function CustodyPage() {
                             {item.status === 'in_custody' ? 'en custodia' : 'entregado'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right space-x-2">
+                        <TableCell className="text-right pr-6 space-x-2">
                           {item.status === 'in_custody' && (
                             <Button
                               variant="outline"

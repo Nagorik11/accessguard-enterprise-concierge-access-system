@@ -1,4 +1,4 @@
-import { ApiResponse } from "../../shared/types"
+import type { ApiResponse } from "@shared/types"
 import { useAuthStore } from "./auth-store"
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const token = useAuthStore.getState().token;
@@ -7,9 +7,9 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
-  const res = await fetch(path, { 
+  const res = await fetch(path, {
     ...init,
-    headers 
+    headers
   })
   const json = (await res.json()) as ApiResponse<T>
   if (!res.ok || !json.success || json.data === undefined) {
